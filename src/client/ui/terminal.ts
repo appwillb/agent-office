@@ -29,9 +29,9 @@ const TYPING_SHOWS_MS = 2500;
 
 /** "Sam is typing…", "Sam and Ada are typing…", "Sam and 2 others are typing…". */
 function typingLine(names: string[]): string {
-  if (names.length === 1) return `${names[0]} is typing…`;
-  if (names.length === 2) return `${names[0]} and ${names[1]} are typing…`;
-  return `${names[0]} and ${names.length - 1} others are typing…`;
+  if (names.length === 1) return `${names[0]} está digitando…`;
+  if (names.length === 2) return `${names[0]} e ${names[1]} estão digitando…`;
+  return `${names[0]} e outros ${names.length - 1} estão digitando…`;
 }
 
 /**
@@ -75,14 +75,14 @@ export interface TerminalOptions {
 
 /** The keypad's keys: what each types, or a function of the terminal for the ones that depend on its mode. */
 const KEYPAD: { label: string; title: string; keys: string | ((term: Terminal) => string) }[] = [
-  { label: '1', title: 'Pick 1 (yes, in a permission prompt)', keys: '1' },
-  { label: '2', title: 'Pick 2', keys: '2' },
-  { label: '3', title: 'Pick 3', keys: '3' },
-  { label: '↑', title: 'Up', keys: (t) => (t.modes.applicationCursorKeysMode ? '\x1bOA' : '\x1b[A') },
-  { label: '↓', title: 'Down', keys: (t) => (t.modes.applicationCursorKeysMode ? '\x1bOB' : '\x1b[B') },
+  { label: '1', title: 'Opção 1 (sim, em confirmações)', keys: '1' },
+  { label: '2', title: 'Opção 2', keys: '2' },
+  { label: '3', title: 'Opção 3', keys: '3' },
+  { label: '↑', title: 'Cima', keys: (t) => (t.modes.applicationCursorKeysMode ? '\x1bOA' : '\x1b[A') },
+  { label: '↓', title: 'Baixo', keys: (t) => (t.modes.applicationCursorKeysMode ? '\x1bOB' : '\x1b[B') },
   { label: '⏎', title: 'Enter', keys: '\r' },
   { label: '⇥', title: 'Tab', keys: '\t' },
-  { label: 'Esc', title: 'Esc: close a menu, or interrupt the agent', keys: '\x1b' },
+  { label: 'Esc', title: 'Esc: fechar menu ou interromper o agente', keys: '\x1b' },
   { label: '^C', title: 'Ctrl+C', keys: '\x03' },
 ];
 
@@ -122,16 +122,16 @@ export function openTerminal(net: Net, workerId: string, onChanges?: () => void,
   // Claude's /skills, or to interrupt it. Ctrl+[ does the same from the keyboard.
   const escBtn = h('button.btn', {
     type: 'button',
-    title: 'Send Esc to the terminal (Ctrl+[): closes a menu like /skills, or interrupts the agent. The Esc key on its own leaves the terminal',
-    'aria-label': 'Send Esc to the terminal',
+    title: 'Enviar Esc para o terminal (Ctrl+[): fecha menus ou interrompe o agente.',
+    'aria-label': 'Enviar Esc para o terminal',
   }, '⎋ Esc');
-  const changesBtn = h('button.btn', { type: 'button', title: 'What this worker changed: files, diff, commit, open a PR (C at the desk)' }, '🌿 Changes');
-  const hideBtn = h('button.btn.term-hide', { type: 'button', title: 'Hide this terminal; the worker keeps running at its desk', 'aria-label': 'Hide terminal' }, 'Hide');
-  const closeBtn = h('button.btn.close', { title: 'Hide terminal (Esc or Ctrl+]) · the worker keeps running; ⎋ Esc or Ctrl+[ sends Esc to the terminal', 'aria-label': 'Hide terminal' }, '✕');
-  const host = h('div.term-host', { 'data-drop': '📎 Drop screenshots or files here to put them in the terminal' });
-  const keys = h('div.term-keys', { role: 'group', 'aria-label': 'Keys' });
-  const say = h('input', { type: 'text', placeholder: 'Reply, or tell it what to do next…', 'aria-label': 'Prompt', enterkeyhint: 'send', autocomplete: 'off' }) as HTMLInputElement;
-  const sayBtn = h('button.btn.primary', { type: 'submit' }, 'Send');
+  const changesBtn = h('button.btn', { type: 'button', title: 'O que o trabalhador alterou: arquivos, diff, commit, abrir PR (tecla C na mesa)' }, '🌿 Alterações');
+  const hideBtn = h('button.btn.term-hide', { type: 'button', title: 'Ocultar terminal; o agente continua rodando na mesa', 'aria-label': 'Ocultar terminal' }, 'Ocultar');
+  const closeBtn = h('button.btn.close', { title: 'Ocultar terminal (Esc ou Ctrl+]) · o agente continua rodando', 'aria-label': 'Ocultar terminal' }, '✕');
+  const host = h('div.term-host', { 'data-drop': '📎 Solte prints ou arquivos aqui para enviar ao terminal' });
+  const keys = h('div.term-keys', { role: 'group', 'aria-label': 'Teclas' });
+  const say = h('input', { type: 'text', placeholder: 'Responda, ou diga o que fazer em seguida…', 'aria-label': 'Prompt', enterkeyhint: 'send', autocomplete: 'off' }) as HTMLInputElement;
+  const sayBtn = h('button.btn.primary', { type: 'submit' }, 'Enviar');
   const sayForm = h('form.term-say', {}, dictateField(say), sayBtn);
   const keypad = opts.keypad ? h('div.term-keypad', {}, keys, sayForm) : null;
   const tabs = termTabs(workerId, { host, keypad, focusTerm: () => term.focus() });
@@ -204,12 +204,12 @@ export function openTerminal(net: Net, workerId: string, onChanges?: () => void,
       ...people.map((v) =>
         h(
           'span.avatar',
-          { class: v.typing ? 'typing' : '', style: `background:${v.color}`, title: `${v.name}${v.you ? ' (you)' : ''}${v.typing ? ' · typing' : ''}` },
+          { class: v.typing ? 'typing' : '', style: `background:${v.color}`, title: `${v.name}${v.you ? ' (você)' : ''}${v.typing ? ' · digitando' : ''}` },
           initials(v.name),
         ),
       ),
     );
-    viewers.title = people.length ? `In this terminal: ${people.map((v) => (v.you ? `${v.name} (you)` : v.name)).join(', ')}` : '';
+    viewers.title = people.length ? `Neste terminal: ${people.map((v) => (v.you ? `${v.name} (você)` : v.name)).join(', ')}` : '';
     const typists = people.filter((v) => v.typing && !v.you).map((v) => v.name);
     typed.classList.toggle('now', typists.length > 0);
     if (typists.length) {
@@ -217,7 +217,7 @@ export function openTerminal(net: Net, workerId: string, onChanges?: () => void,
       typed.title = '';
     } else {
       typed.textContent = w.lastInput ? `⌨️ ${w.lastInput.by}` : '';
-      typed.title = w.lastInput ? `${w.lastInput.by} typed here last, ${timeAgo(w.lastInput.at)}` : '';
+      typed.title = w.lastInput ? `${w.lastInput.by} digitou aqui por último, ${timeAgo(w.lastInput.at)}` : '';
     }
   };
   /** Everyone in the terminal, one face per person however many windows they have it open in, you first. */

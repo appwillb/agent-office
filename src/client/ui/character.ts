@@ -185,32 +185,32 @@ export function openCharacter(first: boolean, onSave: (p: Profile) => void) {
   };
   paint();
 
-  const surprise = h('button.btn', { type: 'button', title: 'Random look' }, '🎲 Surprise me');
+  const surprise = h('button.btn', { type: 'button', title: 'Aparência aleatória' }, '🎲 Surpreenda-me');
   surprise.addEventListener('click', () => change(randomLook(), AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)]));
-  const save = h('button.btn.primary', { type: 'submit' }, first ? 'Enter the office 🚪' : 'Save');
-  const close = h('button.btn.close', { type: 'button', 'aria-label': 'Close', title: first ? 'Skip: go in with this look (Esc)' : 'Close (Esc)' }, '✕');
+  const save = h('button.btn.primary', { type: 'submit' }, first ? 'Entrar no escritório 🚪' : 'Salvar');
+  const close = h('button.btn.close', { type: 'button', 'aria-label': 'Fechar', title: first ? 'Pular: entrar com este visual (Esc)' : 'Fechar (Esc)' }, '✕');
 
   const form = h(
     'form.modal.charsel',
-    { role: 'dialog', 'aria-label': 'Pick your character' },
-    h('header', {}, h('h2', {}, first ? '👋 Pick your character' : '🧍 Your character'), close),
+    { role: 'dialog', 'aria-label': 'Escolha seu personagem' },
+    h('header', {}, h('h2', {}, first ? '👋 Escolha seu personagem' : '🧍 Seu personagem'), close),
     h(
       'div.body',
       {},
-      h('div.charsel-stage', {}, canvas, h('span.tip', {}, 'Drag to spin')),
+      h('div.charsel-stage', {}, canvas, h('span.tip', {}, 'Arraste para girar')),
       h(
         'div.charsel-opts',
         {},
-        h('label', {}, 'Your name'),
+        h('label', {}, 'Seu nome'),
         account ? input : h('div.webhook', {}, input, reroll),
-        account ? h('p.setting-note', {}, `🔑 Signed in as ${account.name}, so that's your name here.`) : null,
-        h('label', {}, 'Skin tone'),
+        account ? h('p.setting-note', {}, `🔑 Conectado como ${account.name}.`) : null,
+        h('label', {}, 'Tom de pele'),
         skinRow,
-        h('label', {}, 'Hair'),
+        h('label', {}, 'Cabelo'),
         styleRow,
-        h('label', {}, 'Hair color'),
+        h('label', {}, 'Cor do cabelo'),
         hairRow,
-        h('label', {}, 'Shirt'),
+        h('label', {}, 'Camisa'),
         shirtRow,
       ),
     ),

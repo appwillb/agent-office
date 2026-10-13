@@ -18,24 +18,24 @@ export function renderWorkers(onOpen: (id: string) => void) {
     const providerKind = w.kind === 'agent' ? resolvedProvider(w.provider, store.project) : undefined;
     const usageState = w.kind === 'agent' ? providerUsageState(w.provider, store.project, w.usage) : undefined;
     const waiting = usageState === 'waiting' ? providerWaitingLabel(providerKind, store.project) : '';
-    const usageNote = usageState === 'untracked' ? ' · usage untracked' : waiting ? ` · ${waiting}` : '';
+    const usageNote = usageState === 'untracked' ? ' · uso não rastreado' : waiting ? ` · ${waiting}` : '';
     const badge = w.kind === 'agent' ? modelBadge(w.provider, w.model, w.effort, w.usage?.model) : undefined;
-    const sub = [provider && `⚙️ ${provider}${badge ? ` · ${badge}` : ''}${usageNote}`, w.worktree && `🌿 ${w.worktree.branch}`, w.repos?.length && `🗂️ ${w.repos.length + 1} repos`, w.pr && `🔀 PR #${w.pr.number}`, w.activity || w.title || w.prompt].filter(Boolean).join(' · ');
+    const sub = [provider && `⚙️ ${provider}${badge ? ` · ${badge}` : ''}${usageNote}`, w.worktree && `🌿 ${w.worktree.branch}`, w.repos?.length && `🗂️ ${w.repos.length + 1} repositórios`, w.pr && `🔀 PR #${w.pr.number}`, w.activity || w.title || w.prompt].filter(Boolean).join(' · ');
     // What it's stopped on, and since when, on a line of its own under its name.
-    const ask = asking ? h('span.ask', {}, `🙋 ${w.activity ?? 'Waiting on an answer'}${w.waitingSince ? ` · ${timeAgo(w.waitingSince)}` : ''}`) : null;
+    const ask = asking ? h('span.ask', {}, `🙋 ${w.activity ?? 'Aguardando resposta'}${w.waitingSince ? ` · ${timeAgo(w.waitingSince)}` : ''}`) : null;
     ul.append(
       h(
         'li',
-        { class: asking ? 'needs-you-row' : '', onclick: () => onOpen(w.id), title: asking ? `${w.name} needs you: open its terminal to answer` : `Open ${w.name}'s terminal` },
+        { class: asking ? 'needs-you-row' : '', onclick: () => onOpen(w.id), title: asking ? `${w.name} precisa de você: abra o terminal para responder` : `Abrir terminal de ${w.name}` },
         h('span.dot', { style: `background:${w.color}` }),
         h('span.name', {}, w.name, sub ? h('span.sub', {}, sub) : null,
           usageState === 'tracked' && w.usage ? h('span.cost', { title: usageTitle(w.usage, providerKind) }, usageLabel(w.usage, providerKind)) : null),
-        w.lost ? h('span.pill.lost', { title: 'Its worktree was deleted outside agent-office: open it to fix it' }, 'worktree deleted') : h('span.pill', { class: w.status }, asking ? 'NEEDS YOU' : (STATUS_LABEL[w.status] ?? w.status)),
+        w.lost ? h('span.pill.lost', { title: 'Seu worktree foi excluído fora do agent-office: abra para corrigir' }, 'worktree excluído') : h('span.pill', { class: w.status }, asking ? 'PRECISA DE VOCÊ' : (STATUS_LABEL[w.status] ?? w.status)),
         ask,
       ),
     );
   }
-  if (!workers.length) ul.append(h('li.empty', {}, 'Walk up to a desk and press E to hire one'));
+  if (!workers.length) ul.append(h('li.empty', {}, 'Aproxime-se de uma mesa e pressione E para contratar um agente'));
   // The count is the workers hired onto desks and bean bags (and a meeting's table): the board agents
   // standing at the Issues, PR and queue kiosks are listed but aren't counted.
   const hired = workers.filter((w) => !DESK_BY_ID.get(w.deskId)?.station).length;

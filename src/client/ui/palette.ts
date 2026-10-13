@@ -28,22 +28,22 @@ export function togglePalette(entries: () => PaletteEntry[]) {
   const all = entries();
   const input = h('input', {
     type: 'text',
-    placeholder: 'Find a worker, issue, PR, board, teammate or action…',
+    placeholder: 'Buscar trabalhador, issue, PR, quadro, colega ou ação…',
     autocomplete: 'off',
     spellcheck: 'false',
-    'aria-label': 'Find anything in the office',
+    'aria-label': 'Buscar qualquer coisa no escritório',
     role: 'combobox',
     'aria-controls': 'palette-list',
     'aria-expanded': 'true',
   });
   const list = h('ul.palette-list', { id: 'palette-list', role: 'listbox' });
-  const empty = h('p.note.palette-empty', {}, 'Nothing here matches that.');
+  const empty = h('p.note.palette-empty', {}, 'Nenhum resultado encontrado.');
   const hint = h(
     'footer',
     {},
-    h('span.grow', {}, h('span.key', {}, '↵'), 'open ', h('span.key', {}, '⇧↵'), 'walk there first ', h('span.key', {}, '↑↓'), 'choose ', h('span.key', {}, 'Esc'), 'close'),
+    h('span.grow', {}, h('span.key', {}, '↵'), 'abrir ', h('span.key', {}, '⇧↵'), 'andar até lá primeiro ', h('span.key', {}, '↑↓'), 'navegar ', h('span.key', {}, 'Esc'), 'fechar'),
   );
-  const el = h('div.modal.palette', { role: 'dialog', 'aria-label': 'Command palette' }, h('div.palette-find', {}, input), list, empty, hint);
+  const el = h('div.modal.palette', { role: 'dialog', 'aria-label': 'Paleta de comandos' }, h('div.palette-find', {}, input), list, empty, hint);
 
   let found: PaletteMatch<PaletteEntry>[] = [];
   let at = 0;
@@ -76,7 +76,7 @@ export function togglePalette(entries: () => PaletteEntry[]) {
         const e = m.item;
         const row = h(
           'li.palette-row',
-          { id: `palette-${i}`, role: 'option', 'aria-selected': 'false', title: e.walk ? 'Enter opens it · Shift+Enter walks you there first' : 'Enter opens it' },
+          { id: `palette-${i}`, role: 'option', 'aria-selected': 'false', title: e.walk ? 'Enter para abrir · Shift+Enter para andar até lá' : 'Enter para abrir' },
           h('span.palette-icon', {}, e.icon),
           h('span.palette-text', {}, h('span.palette-title', {}, ...marked(e.title, m.field === 'title' ? m.hits : [])), e.detail ? h('span.palette-detail', {}, ...marked(e.detail, m.field === 'detail' ? m.hits : [])) : null),
           h('span.palette-kind', {}, e.kind),

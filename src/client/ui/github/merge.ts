@@ -26,20 +26,20 @@ export function conflicted(d: GhPullDetail) {
 export function mergeStatus(d: GhPullDetail): MergeStatus {
   const failing = d.checks.filter((c) => c.state === 'fail').length;
   const pending = d.checks.filter((c) => c.state === 'pending').length;
-  if (d.state === 'MERGED') return { icon: '🎉', text: 'Merged.', cls: 'ok', can: false, auto: false };
-  if (d.state === 'CLOSED') return { icon: '🗑️', text: 'Closed without merging.', cls: 'muted', can: false, auto: false };
-  if (d.isDraft) return { icon: '📝', text: 'This is still a draft. Mark it ready for review on GitHub before merging.', cls: 'muted', can: false, auto: false };
+  if (d.state === 'MERGED') return { icon: '🎉', text: 'Mesclado.', cls: 'ok', can: false, auto: false };
+  if (d.state === 'CLOSED') return { icon: '🗑️', text: 'Fechado sem mesclar.', cls: 'muted', can: false, auto: false };
+  if (d.isDraft) return { icon: '📝', text: 'Isto ainda é um rascunho. Marque como pronto para revisão no GitHub antes de mesclar.', cls: 'muted', can: false, auto: false };
   if (conflicted(d))
-    return { icon: '⚠️', text: `This branch has conflicts with ${d.baseRefName} that must be resolved first.`, cls: 'bad', can: false, auto: false };
-  if (d.mergeStateStatus === 'BEHIND') return { icon: '⤵️', text: `The branch is behind ${d.baseRefName}, and this repo wants it up to date before merging.`, cls: 'warn', can: true, auto: true };
+    return { icon: '⚠️', text: `Esta ramificação tem conflitos com ${d.baseRefName} que precisam ser resolvidos primeiro.`, cls: 'bad', can: false, auto: false };
+  if (d.mergeStateStatus === 'BEHIND') return { icon: '⤵️', text: `A ramificação está desatualizada em relação a ${d.baseRefName}, e este repositório exige atualização antes de mesclar.`, cls: 'warn', can: true, auto: true };
   if (d.mergeStateStatus === 'BLOCKED') {
-    const why = d.reviewDecision === 'CHANGES_REQUESTED' ? 'changes were requested' : d.reviewDecision === 'REVIEW_REQUIRED' ? 'it needs an approving review' : failing ? `${failing} check${failing > 1 ? 's are' : ' is'} failing` : pending ? 'required checks are still running' : 'a branch rule is not met yet';
-    return { icon: '🚫', text: `Merging is blocked: ${why}.`, cls: 'bad', can: true, auto: true };
+    const why = d.reviewDecision === 'CHANGES_REQUESTED' ? 'alterações foram solicitadas' : d.reviewDecision === 'REVIEW_REQUIRED' ? 'precisa de uma revisão aprovando' : failing ? `${failing} verificação${failing > 1 ? 'ões estão' : ' está'} falhando` : pending ? 'verificações obrigatórias ainda estão rodando' : 'uma regra de ramificação ainda não foi atendida';
+    return { icon: '🚫', text: `A mesclagem está bloqueada: ${why}.`, cls: 'bad', can: true, auto: true };
   }
-  if (failing) return { icon: '❌', text: `${failing} check${failing > 1 ? 's' : ''} failing. It can still be merged.`, cls: 'warn', can: true, auto: false };
-  if (pending || d.mergeStateStatus === 'UNSTABLE') return { icon: '🟡', text: 'Checks are still running. It can be merged now, or once they pass.', cls: 'warn', can: true, auto: true };
-  if (d.mergeStateStatus === 'UNKNOWN' || d.mergeable === 'UNKNOWN') return { icon: '⏳', text: 'GitHub is still working out whether this can merge. Refresh in a moment.', cls: 'muted', can: true, auto: false };
-  return { icon: '✅', text: `Ready to merge: no conflicts with ${d.baseRefName}${d.checks.length ? ' and all checks passed' : ''}.`, cls: 'ok', can: true, auto: false };
+  if (failing) return { icon: '❌', text: `${failing} verificação${failing > 1 ? 'ões' : ''} falhando. Ainda pode ser mesclado.`, cls: 'warn', can: true, auto: false };
+  if (pending || d.mergeStateStatus === 'UNSTABLE') return { icon: '🟡', text: 'Verificações ainda em execução. Pode ser mesclado agora ou assim que passarem.', cls: 'warn', can: true, auto: true };
+  if (d.mergeStateStatus === 'UNKNOWN' || d.mergeable === 'UNKNOWN') return { icon: '⏳', text: 'O GitHub ainda está verificando se isto pode ser mesclado. Atualize em instantes.', cls: 'muted', can: true, auto: false };
+  return { icon: '✅', text: `Pronto para mesclar: sem conflitos com ${d.baseRefName}${d.checks.length ? ' e todas as verificações passaram' : ''}.`, cls: 'ok', can: true, auto: false };
 }
 
 export function checksList(checks: GhCheck[]) {
@@ -54,7 +54,7 @@ export function checksList(checks: GhCheck[]) {
 
 // ---- Merge dialog -------------------------------------------------------------------------------
 
-const METHOD_LABEL: Record<GhMergeMethod, string> = { squash: 'Squash and merge', merge: 'Create a merge commit', rebase: 'Rebase and merge' };
+const METHOD_LABEL: Record<GhMergeMethod, string> = { squash: 'Squash e mesclar', merge: 'Criar commit de mesclagem', rebase: 'Rebase e mesclar' };
 
 export function openMerge(it: GhPull, d: GhPullDetail, net: Net, handToWorker: () => void, onMerged: () => void) {
   const st = mergeStatus(d);
@@ -72,7 +72,7 @@ export function openMerge(it: GhPull, d: GhPullDetail, net: Net, handToWorker: (
         h('button.btn', { type: 'button', class: m === method ? 'on' : '', onclick: () => ((method = m), savePref(MERGE_KEY, { method, deleteBranch }), renderMethods()) }, METHOD_LABEL[m]),
       ),
     );
-    go.textContent = auto.checked ? '⏱ Merge when ready' : `🔀 ${METHOD_LABEL[method]}`;
+    go.textContent = auto.checked ? '⏱ Mesclar quando estiver pronto' : `🔀 ${METHOD_LABEL[method]}`;
   };
   auto.addEventListener('change', renderMethods);
   const del = h('input', { type: 'checkbox', id: 'merge-del' }) as HTMLInputElement;
@@ -82,26 +82,26 @@ export function openMerge(it: GhPull, d: GhPullDetail, net: Net, handToWorker: (
     savePref(MERGE_KEY, { method, deleteBranch });
   });
   const result = h('div.gh-merge-result.hidden');
-  const cancel = h('button.btn', { type: 'button' }, 'Cancel');
+  const cancel = h('button.btn', { type: 'button' }, 'Cancelar');
   // Conflicts can't be merged from here, so fixing them is the main button.
   const worker = conflicted(d)
-    ? h('button.btn.primary', { type: 'button', title: 'A new worker merges the base in, resolves the conflicts, then merges it the way picked above' }, '✨ New worker: fix conflicts & merge')
-    : h('button.btn', { type: 'button', title: 'A worker fixes whatever is in the way, then merges' }, '🤖 Hand to a worker');
+    ? h('button.btn.primary', { type: 'button', title: 'Um novo trabalhador mescla a base, resolve os conflitos e mescla conforme escolhido acima' }, '✨ Novo trabalhador: corrigir conflitos e mesclar')
+    : h('button.btn', { type: 'button', title: 'Um trabalhador corrige o que estiver pendente e mescla' }, '🤖 Entregar para um trabalhador');
 
   const el = h(
     'div.modal.gh-merge',
-    { role: 'dialog', 'aria-label': `Merge PR #${it.number}` },
-    h('header', {}, h('h2', {}, `🔀 Merge #${it.number}`)),
+    { role: 'dialog', 'aria-label': `Mesclar PR #${it.number}` },
+    h('header', {}, h('h2', {}, `🔀 Mesclar #${it.number}`)),
     h(
       'div.body',
       {},
       h('p.gh-merge-title', {}, it.title, h('small', {}, `${it.headRefName} → ${it.baseRefName}`)),
       h('div.gh-status', { class: st.cls }, h('span', {}, st.icon), st.text),
       d.checks.length ? checksList(d.checks) : null,
-      h('label', { style: 'margin-top:14px' }, 'How'),
+      h('label', { style: 'margin-top:14px' }, 'Como'),
       methodBtns,
-      h('label.gh-check', { for: 'merge-del' }, del, `Delete ${it.headRefName} after merging`),
-      st.auto ? h('label.gh-check', { for: 'merge-auto', title: 'gh pr merge --auto (the repo must allow auto-merge)' }, auto, 'Merge automatically once the requirements pass') : null,
+      h('label.gh-check', { for: 'merge-del' }, del, `Excluir ${it.headRefName} após mesclar`),
+      st.auto ? h('label.gh-check', { for: 'merge-auto', title: 'gh pr merge --auto (o repositório deve permitir auto-merge)' }, auto, 'Mesclar automaticamente assim que os requisitos passarem') : null,
       result,
     ),
     h('footer', {}, st.can || conflicted(d) ? null : worker, h('span.grow'), cancel, conflicted(d) ? worker : go),
@@ -120,7 +120,7 @@ export function openMerge(it: GhPull, d: GhPullDetail, net: Net, handToWorker: (
     busy = true;
     go.disabled = true;
     result.className = 'gh-merge-result';
-    result.replaceChildren(h('span.spinner'), auto.checked && st.auto ? 'Asking GitHub to merge it when ready…' : 'Merging…');
+    result.replaceChildren(h('span.spinner'), auto.checked && st.auto ? 'Solicitando ao GitHub para mesclar quando estiver pronto…' : 'Mesclando…');
     mergeWaiters.set(it.number, (msg) => {
       mergeWaiters.delete(it.number);
       busy = false;

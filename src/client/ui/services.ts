@@ -40,7 +40,7 @@ function elsewhere(s: ServicesState): boolean {
 
 function describe(svc: ServiceInfo): { who: string; color: string; branch?: string } {
   const w = store.workers.get(svc.workerId);
-  return { who: w?.name ?? 'A worker', color: w?.color ?? '#8d99ae', branch: w?.worktree?.branch };
+  return { who: w?.name ?? 'Um trabalhador', color: w?.color ?? '#8d99ae', branch: w?.worktree?.branch };
 }
 
 export function openServices() {
@@ -48,13 +48,13 @@ export function openServices() {
   let picked: number | null = null;
   let copied: number | null = null;
   const body = h('div.body.team.services');
-  const close = h('button.btn.close', { 'aria-label': 'Close' }, '✕');
+  const close = h('button.btn.close', { 'aria-label': 'Fechar' }, '✕');
   const tabs = h('div.os-tabs');
-  const footer = h('footer', {}, h('span.grow', {}, 'Tunnels go through the office, so the office password still guards every page. Keep the terminal open while you look.'));
+  const footer = h('footer', {}, h('span.grow', {}, 'Os túneis passam pelo escritório e continuam protegidos por senha.'));
   const el = h(
     'div.modal',
-    { role: 'dialog', 'aria-label': 'Services', style: 'width:min(760px,100%)' },
-    h('header', {}, h('h2', {}, '🌐 Services'), tabs, close),
+    { role: 'dialog', 'aria-label': 'Serviços', style: 'width:min(760px,100%)' },
+    h('header', {}, h('h2', {}, '🌐 Serviços'), tabs, close),
     body,
     footer,
   );
@@ -75,15 +75,15 @@ export function openServices() {
       ),
     );
     footer.firstElementChild!.textContent = direct
-      ? 'Every link goes through the office, so the office sign-in still guards every page.'
-      : 'Tunnels go through the office, so the office password still guards every page. Keep the terminal open while you look.';
+      ? 'Cada link passa pelo escritório, então o login no escritório continua protegendo todas as páginas.'
+      : 'Os túneis passam pelo escritório, então a senha do escritório continua protegendo todas as páginas. Mantenha o terminal aberto enquanto visualiza.';
     body.replaceChildren(
       h(
         'p.note',
         { style: 'margin:0 0 12px' },
         direct
-          ? 'Web servers the workers are running. Each has its own link on your Tailscale network: open it, or click the row to copy it for someone else on the network.'
-          : 'Web servers the workers are running. Click one to copy a command that opens it on your computer — run it in a terminal and the page opens by itself.',
+          ? 'Servidores web em execução pelos trabalhadores. Cada um tem seu próprio link na sua rede Tailscale: abra ou clique na linha para copiar para outra pessoa na rede.'
+          : 'Servidores web em execução pelos trabalhadores. Clique em um para copiar um comando que o abre no seu computador — execute-o em um terminal e a página abre automaticamente.',
       ),
     );
     if (!direct && elsewhere(s)) {
@@ -91,17 +91,17 @@ export function openServices() {
         h(
           'div.svc-auto',
           {},
-          h('p', {}, '⚡ Open them all, by themselves'),
+          h('p', {}, '⚡ Abrir todos automaticamente'),
           h(
             'p.note',
             {},
-            'Run this on your computer and leave it running. Every server a worker starts opens on the same port there (',
+            'Execute isto no seu computador e deixe rodando. Todo servidor que um trabalhador iniciar abre na mesma porta lá (',
             h('code', {}, 'localhost:5173'),
-            ' is the worker’s), and closes when the worker stops it. It needs the ',
+            ' é o do trabalhador) e fecha quando o trabalhador parar. Requer o comando ',
             h('code', {}, 'agent-office'),
-            ' command on your computer: the install line in the README.',
+            ' no seu computador: veja a linha de instalação no README.',
           ),
-          h('div.cmd', {}, h('pre', {}, autoTunnel()), copyButton('Copy', () => autoTunnel())),
+          h('div.cmd', {}, h('pre', {}, autoTunnel()), copyButton('Copiar', () => autoTunnel())),
         ),
       );
     }
@@ -110,8 +110,8 @@ export function openServices() {
         h(
           'div.svc-empty',
           {},
-          h('p', {}, 'Nothing running yet.'),
-          h('p.note', {}, 'When a worker starts a web server — ', h('code', {}, 'npm run dev'), ', a preview build, ', h('code', {}, 'python -m http.server'), ' — it shows up here within a few seconds. Try prompting: “start the dev server in the background so we can review it”.'),
+          h('p', {}, 'Nada rodando ainda.'),
+          h('p.note', {}, 'Quando um trabalhador inicia um servidor web — ', h('code', {}, 'npm run dev'), ', um build de prévia, ', h('code', {}, 'python -m http.server'), ' — ele aparece aqui em poucos segundos. Experimente pedir: “inicie o servidor de desenvolvimento em segundo plano para podermos revisar”.'),
         ),
       );
       return;
@@ -120,18 +120,18 @@ export function openServices() {
     for (const svc of s.items) {
       const { who, color, branch } = describe(svc);
       const on = picked === svc.port;
-      const title = direct ? `Open ${serviceUrl(svc.port)}` : `Open ${serviceUrl(svc.port)} (needs the tunnel, unless the office runs on this computer)`;
-      const open = h('a.btn', { href: serviceUrl(svc.port), target: '_blank', rel: 'noopener', title }, 'Open ↗');
+      const title = direct ? `Abrir ${serviceUrl(svc.port)}` : `Abrir ${serviceUrl(svc.port)} (requer o túnel, a menos que o escritório rode neste computador)`;
+      const open = h('a.btn', { href: serviceUrl(svc.port), target: '_blank', rel: 'noopener', title }, 'Abrir ↗');
       open.addEventListener('click', (e) => e.stopPropagation());
       const li = h(
         'li',
-        { class: on ? 'on' : '', tabindex: 0, role: 'button', title: direct ? 'Copy the link' : 'Copy the tunnel command' },
+        { class: on ? 'on' : '', tabindex: 0, role: 'button', title: direct ? 'Copiar o link' : 'Copiar o comando do túnel' },
         h('span.dot', { style: `background:${color}` }),
         h(
           'div.svc-main',
           {},
           h('div.svc-title', {}, svc.title || svc.command),
-          h('div.svc-meta', {}, [who, branch ? `🌿 ${branch}` : '', svc.title ? svc.command : '', `started ${timeAgo(svc.since)}`].filter(Boolean).join(' · ')),
+          h('div.svc-meta', {}, [who, branch ? `🌿 ${branch}` : '', svc.title ? svc.command : '', `iniciado há ${timeAgo(svc.since)}`].filter(Boolean).join(' · ')),
         ),
         h('span.svc-port', {}, `:${svc.port}`),
         open,
@@ -151,25 +151,25 @@ export function openServices() {
     if (svc && direct) {
       body.append(
         copied === svc.port
-          ? h('p.team-status.ok', {}, `✅ Copied ${serviceUrl(svc.port)}. Anyone on the network who's signed in to the office can open it.`)
-          : h('p.team-status', {}, `The link for :${svc.port}: ${serviceUrl(svc.port)}`),
+          ? h('p.team-status.ok', {}, `✅ Copiado ${serviceUrl(svc.port)}. Qualquer pessoa na rede conectada ao escritório pode abrir.`)
+          : h('p.team-status', {}, `O link para :${svc.port}: ${serviceUrl(svc.port)}`),
       );
     } else if (svc) {
       const cmd = serviceTunnel(s, svc.port, os);
       body.append(
         copied === svc.port
-          ? h('p.team-status.ok', {}, `✅ Copied. Paste it in a terminal: it opens ${serviceUrl(svc.port)} once the tunnel is up.`)
-          : h('p.team-status', {}, `The command for :${svc.port} — run it in a terminal, and it opens ${serviceUrl(svc.port)}.`),
-        h('div.cmd', {}, h('pre', {}, cmd), copyButton('Copy', () => cmd)),
+          ? h('p.team-status.ok', {}, `✅ Copiado. Cole no terminal: abre ${serviceUrl(svc.port)} assim que o túnel conectar.`)
+          : h('p.team-status', {}, `O comando para :${svc.port} — execute no terminal e ele abre ${serviceUrl(svc.port)}.`),
+        h('div.cmd', {}, h('pre', {}, cmd), copyButton('Copiar', () => cmd)),
       );
     } else if (picked !== null) {
-      body.append(h('p.team-status.error', {}, `The server on :${picked} stopped.`));
+      body.append(h('p.team-status.error', {}, `O servidor na porta :${picked} parou.`));
     }
     if (direct) return;
     body.append(
       s.ssh
-        ? h('p.note', {}, 'It uses the same SSH access as the office. Not invited yourself (you set the office up)? Run ', h('code', {}, `${s.deploy ?? 'deploy/aws.sh'} service <port>`), ' instead.')
-        : h('p.note', {}, 'Replace ', h('code', {}, 'you@your-server'), ' with how you SSH to the office\'s machine. If the office runs on this computer, just click Open.'),
+        ? h('p.note', {}, 'Usa o mesmo acesso SSH do escritório. Não foi convidado (você mesmo configurou o escritório)? Execute ', h('code', {}, `${s.deploy ?? 'deploy/aws.sh'} service <porta>`), ' em vez disso.')
+        : h('p.note', {}, 'Substitua ', h('code', {}, 'you@your-server'), ' pelo comando SSH para a máquina do escritório. Se o escritório estiver rodando neste computador, basta clicar em Abrir.'),
     );
   };
 
@@ -177,7 +177,7 @@ export function openServices() {
   // Keeps "up 5m" fresh.
   const tick = setInterval(render, 30_000);
   const modal = openModal(el, {
-    doing: '🌐 at the services board',
+    doing: '🌐 no painel de serviços',
     onClose: () => {
       unsubs.forEach((u) => u());
       clearInterval(tick);

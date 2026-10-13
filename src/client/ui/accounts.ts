@@ -25,19 +25,19 @@ export function openAccounts(net: Net) {
   /** The invite just made, shown big until the next one. */
   let fresh: AccountInvite | null = null;
   const body = h('div.body.team.accounts');
-  const close = h('button.btn.close', { 'aria-label': 'Close' }, '✕');
+  const close = h('button.btn.close', { 'aria-label': 'Fechar' }, '✕');
   const signedInAs = h('span.grow');
   const el = h(
     'div.modal',
-    { role: 'dialog', 'aria-label': 'Accounts', style: 'width:min(680px,100%)' },
-    h('header', {}, h('h2', {}, '🔑 Accounts'), close),
+    { role: 'dialog', 'aria-label': 'Contas', style: 'width:min(680px,100%)' },
+    h('header', {}, h('h2', {}, '🔑 Contas'), close),
     body,
     h('footer', {}, signedInAs),
   );
 
-  const nameInput = h('input', { type: 'text', maxlength: 24, placeholder: 'Their name (optional)', 'aria-label': 'Their name', autocomplete: 'off', spellcheck: 'false' }) as HTMLInputElement;
-  const roleSelect = h('select', { 'aria-label': 'Role' }, h('option', { value: 'member' }, 'Member'), h('option', { value: 'admin' }, 'Admin')) as HTMLSelectElement;
-  const inviteBtn = h('button.btn.primary', { type: 'submit' }, 'Make invite link');
+  const nameInput = h('input', { type: 'text', maxlength: 24, placeholder: 'Nome (opcional)', 'aria-label': 'Nome', autocomplete: 'off', spellcheck: 'false' }) as HTMLInputElement;
+  const roleSelect = h('select', { 'aria-label': 'Função' }, h('option', { value: 'member' }, 'Membro'), h('option', { value: 'admin' }, 'Administrador')) as HTMLSelectElement;
+  const inviteBtn = h('button.btn.primary', { type: 'submit' }, 'Gerar link de convite');
   const form = h('form.invite-row', {}, nameInput, roleSelect, inviteBtn) as HTMLFormElement;
   form.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -48,15 +48,15 @@ export function openAccounts(net: Net) {
   const render = () => {
     const s = store.accounts;
     const me = store.me;
-    signedInAs.textContent = me.account ? `You're signed in as ${me.account.name} (${me.account.role}).` : "You're signed in with the shared office password.";
+    signedInAs.textContent = me.account ? `Conectado como ${me.account.name} (${me.account.role}).` : 'Conectado com a senha compartilhada do escritório.';
     const typing = document.activeElement === nameInput;
     body.replaceChildren();
-    if (!s) return body.append(h('p.empty', {}, 'Loading…'));
+    if (!s) return body.append(h('p.empty', {}, 'Carregando…'));
 
     body.append(
-      h('label', {}, 'Invite someone'),
+      h('label', {}, 'Convidar alguém'),
       form,
-      h('p.note', {}, 'You get a link that makes one account, with its own name and password. It works once and expires after 7 days. Leave the name empty and they pick their own.'),
+      h('p.note', {}, 'Gera um link para criar uma conta própria com nome e senha. Expira em 7 dias.'),
     );
     if (status) body.append(status);
     if (fresh) {

@@ -10,7 +10,7 @@ export interface HudAction {
   id: string;
   icon: string | (() => string);
   label: string | (() => string);
-  section: 'Open' | 'Together' | 'Office';
+  section: 'Abrir' | 'Equipe' | 'Escritório';
   /** Its keyboard shortcut, if it has one (now). */
   key?: string | (() => string | undefined);
   /** A number worth knowing before you open it: open issues, tasks waiting… */
@@ -32,12 +32,12 @@ export interface HudAction {
 }
 
 const PANELS: { id: HudPanel; icon: string; label: string; what: string }[] = [
-  { id: 'workers', icon: '🤖', label: 'Workers', what: 'Every desk and what it’s up to' },
-  { id: 'people', icon: '👥', label: 'People', what: 'Who’s here, on which floor' },
-  { id: 'spend', icon: '💸', label: 'Spend', what: 'Today, the budget, all time' },
-  { id: 'limits', icon: '⏳', label: 'Claude limits', what: 'The plan’s 5-hour and week' },
-  { id: 'chat', icon: '💬', label: 'Chat', what: 'T opens it either way' },
-  { id: 'floor', icon: '🏢', label: 'Floor details', what: 'Branch, folder, default agent' },
+  { id: 'workers', icon: '🤖', label: 'Trabalhadores', what: 'Cada mesa e suas tarefas' },
+  { id: 'people', icon: '👥', label: 'Pessoas', what: 'Quem está aqui e em qual andar' },
+  { id: 'spend', icon: '💸', label: 'Gastos', what: 'Hoje, orçamento e histórico' },
+  { id: 'limits', icon: '⏳', label: 'Limites Claude', what: 'Limites de 5h e semanais do plano' },
+  { id: 'chat', icon: '💬', label: 'Chat', what: 'T abre diretamente' },
+  { id: 'floor', icon: '🏢', label: 'Detalhes do andar', what: 'Branch, pasta e agente padrão' },
 ];
 
 /** The element each panel is. */
@@ -117,7 +117,7 @@ export function mountHud(actions: HudAction[], settings: Settings, save: () => v
     const on = settings.hud[id];
     return h(
       'button.btn.dock-btn.dock-panel',
-      { type: 'button', 'aria-pressed': String(on), title: `${title}${on ? ' · click to hide' : ' · click to show'}`, onclick: () => setPanel(id, !settings.hud[id]) },
+      { type: 'button', 'aria-pressed': String(on), title: `${title}${on ? ' · clique para ocultar' : ' · clique para exibir'}`, onclick: () => setPanel(id, !settings.hud[id]) },
       icon,
       h('span.lbl', {}, label),
       n ? h('span.n', {}, String(n)) : null,
@@ -127,14 +127,14 @@ export function mountHud(actions: HudAction[], settings: Settings, save: () => v
   function render() {
     const items: HTMLElement[] = actions.filter((a) => offered(a) && (pinned(a) || a.status?.())).map(dockButton);
     const people = store.peers.size;
-    if (people > 1 || settings.hud.people) items.push(panelChip('people', '👥', 'People', people, `${people} in the office`));
+    if (people > 1 || settings.hud.people) items.push(panelChip('people', '👥', 'Pessoas', people, `${people} no escritório`));
     const workers = [...store.workers.values()];
     // Hired onto desks, bean bags and the meeting room's table; the board agents at their kiosks don't count.
     const hired = workers.filter((w) => !DESK_BY_ID.get(w.deskId)?.station).length;
     const waiting = workers.filter(waitingOnSomeone).length;
-    const workersTitle = hired || waiting ? `${hired} worker${hired === 1 ? '' : 's'} on this floor${waiting ? `, ${waiting} waiting on someone` : ''}` : 'No workers on this floor yet';
+    const workersTitle = hired || waiting ? `${hired} trabalhador${hired === 1 ? '' : 'es'} neste andar${waiting ? `, ${waiting} aguardando resposta` : ''}` : 'Nenhum trabalhador neste andar ainda';
     // Who's waiting has its own button on the bar (the 'waiting' action), so this just counts them.
-    items.push(panelChip('workers', '🤖', 'Workers', hired, workersTitle));
+    items.push(panelChip('workers', '🤖', 'Trabalhadores', hired, workersTitle));
     // Redrawn only when it looks different, so a busy worker's updates don't swap a button out from under a click.
     const next = h('div', {}, ...items);
     if (next.innerHTML !== [...dock.children].filter((c) => c !== menuBtn).map((c) => c.outerHTML).join('')) dock.replaceChildren(...items, menuBtn);
@@ -170,8 +170,8 @@ export function mountHud(actions: HudAction[], settings: Settings, save: () => v
       pin.innerHTML = PIN_SVG;
       const paintPin = () => {
         pin.setAttribute('aria-pressed', String(pinned(a)));
-        pin.setAttribute('aria-label', `Pin ${labelOf(a)} to the top bar`);
-        pin.title = pinned(a) ? 'Unpin from the top bar' : 'Pin to the top bar';
+        pin.setAttribute('aria-label', `Fixar ${labelOf(a)} na barra superior`);
+        pin.title = pinned(a) ? 'Desafixar da barra superior' : 'Fixar na barra superior';
       };
       paintPin();
       pin.addEventListener('click', () => {
@@ -201,9 +201,9 @@ export function mountHud(actions: HudAction[], settings: Settings, save: () => v
     const el = h(
       'div.hud-menu',
       { role: 'menu', 'aria-label': 'Menu' },
-      h('div.menu-col', {}, ...section('Open', rows('Open')), ...section('Together', rows('Together'))),
-      h('div.menu-col', {}, ...section('Show on screen', PANELS.map(toggle)), ...section('Office', rows('Office'))),
-      h('p.menu-foot', {}, 'Pin what you use most to keep it on the top bar. ', h('kbd', {}, 'Tab'), ' opens and closes this menu.'),
+      h('div.menu-col', {}, ...section('Abrir', rows('Abrir')), ...section('Equipe', rows('Equipe'))),
+      h('div.menu-col', {}, ...section('Exibir na tela', PANELS.map(toggle)), ...section('Escritório', rows('Escritório'))),
+      h('p.menu-foot', {}, 'Fixe o que mais usa para mantê-lo na barra superior. ', h('kbd', {}, 'Tab'), ' abre e fecha este menu.'),
     );
     // On the window, so the keys work wherever focus is while the menu is up.
     const onKey = (e: KeyboardEvent) => menuKey(el, e);

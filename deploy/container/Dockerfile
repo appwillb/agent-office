@@ -33,6 +33,7 @@ RUN apt-get update \
     >/etc/apt/sources.list.d/github-cli.list \
   && apt-get update \
   && apt-get install -y --no-install-recommends gh \
+  && npm install -g opencode-ai \
   && rm -rf /var/lib/apt/lists/*
 COPY --from=build /opt/agent-office /opt/agent-office
 RUN /opt/agent-office/deploy/container/install.sh

@@ -46,7 +46,7 @@ export const MAP_LIMITS = { tables: 40, seats: 12, props: 400 } as const;
 /** The dais a throne stands on when its map doesn't say. */
 export const DEFAULT_DAIS = { width: 8, depth: 4.5, height: 0.9, steps: 3 } as const;
 
-const DEFAULT_BOARD_LABEL: Record<BoardKey, string> = { issues: 'Issues', queue: '📋 Task queue', pulls: 'Pull Requests', services: '🌐 Services' };
+const DEFAULT_BOARD_LABEL: Record<BoardKey, string> = { issues: 'Issues', queue: '📋 Fila de tarefas', pulls: 'Pull Requests', services: '🌐 Serviços' };
 
 // ---- The office -----------------------------------------------------------------------------------
 

@@ -33,24 +33,24 @@ export function closeFloorMenu() {
 /** Opens the floor list under `anchor`, or closes it if it's open. */
 export function toggleFloorMenu(anchor: HTMLElement, opts: FloorMenuOptions): void {
   if (current) return current.close();
-  const el = h('div.floor-menu.panel', { role: 'menu', 'aria-label': 'Floors' });
+  const el = h('div.floor-menu.panel', { role: 'menu', 'aria-label': 'Andares' });
 
   const item = (f: FloorInfo, i: number, here: number) => {
     const isHere = f.id === store.floor;
     const p = floorPalette(f.palette);
     const n = Math.abs(i - here);
-    const where = isHere ? 'you are here' : here < 0 ? '' : `${i > here ? '⬆' : '⬇'} ${n} floor${n === 1 ? '' : 's'} ${i > here ? 'up' : 'down'}`;
+    const where = isHere ? 'você está aqui' : here < 0 ? '' : `${i > here ? '⬆' : '⬇'} ${n} andar${n === 1 ? '' : 'es'} para ${i > here ? 'cima' : 'baixo'}`;
     const stats: HTMLElement[] = [];
-    if (f.cloning) stats.push(h('span', { title: f.clone?.detail ?? 'Being cloned' }, cloneLabel(f.clone)));
+    if (f.cloning) stats.push(h('span', { title: f.clone?.detail ?? 'Sendo clonado' }, cloneLabel(f.clone)));
     else {
-      if (f.waiting) stats.push(h('span.waiting', { title: 'Workers waiting on someone' }, `🙋 ${f.waiting}`));
-      if (f.busy) stats.push(h('span', { title: 'Working' }, `👷 ${f.busy}`));
-      stats.push(h('span', { title: 'Workers at desks' }, `💻 ${f.workers}`));
-      if (f.people) stats.push(h('span', { title: 'People on this floor' }, `🧑 ${f.people}`));
+      if (f.waiting) stats.push(h('span.waiting', { title: 'Trabalhadores aguardando resposta' }, `🙋 ${f.waiting}`));
+      if (f.busy) stats.push(h('span', { title: 'Trabalhando' }, `👷 ${f.busy}`));
+      stats.push(h('span', { title: 'Trabalhadores nas mesas' }, `💻 ${f.workers}`));
+      if (f.people) stats.push(h('span', { title: 'Pessoas neste andar' }, `🧑 ${f.people}`));
     }
     const btn = h(
       'button.floor-item',
-      { type: 'button', role: 'menuitem', class: isHere ? 'here' : '', disabled: isHere || f.cloning, title: isHere ? "You're on this floor" : f.cloning ? 'Still being cloned' : opts.indoors() ? `Go to ${f.name}, right where you're standing` : `Go to ${f.name}, in its elevator` },
+      { type: 'button', role: 'menuitem', class: isHere ? 'here' : '', disabled: isHere || f.cloning, title: isHere ? "Você está neste andar" : f.cloning ? 'Ainda sendo clonado' : opts.indoors() ? `Ir para ${f.name}, exatamente onde você está` : `Ir para ${f.name}, no elevador` },
       h('span.floor-no', { style: `background:${p.trim}` }, String(i + 1)),
       h('span.floor-text', {}, h('span.floor-name', {}, f.name), h('span.floor-sub', {}, where || (f.repo ?? f.dir))),
       h('span.floor-stats', {}, ...stats),
@@ -66,7 +66,7 @@ export function toggleFloorMenu(anchor: HTMLElement, opts: FloorMenuOptions): vo
   const render = () => {
     const floors = store.floors;
     const here = floors.findIndex((f) => f.id === store.floor);
-    const add = h('button.floor-item.add', { type: 'button', role: 'menuitem', title: 'The elevator: add another project as a floor' }, h('span.floor-no', {}, '🛗'), h('span.floor-text', {}, h('span.floor-name', {}, 'Elevator'), h('span.floor-sub', {}, 'Add a project…')));
+    const add = h('button.floor-item.add', { type: 'button', role: 'menuitem', title: 'O elevador: adicionar outro projeto como andar' }, h('span.floor-no', {}, '🛗'), h('span.floor-text', {}, h('span.floor-name', {}, 'Elevador'), h('span.floor-sub', {}, 'Adicionar um projeto…')));
     add.addEventListener('click', () => {
       close();
       opts.elevator();
@@ -77,17 +77,17 @@ export function toggleFloorMenu(anchor: HTMLElement, opts: FloorMenuOptions): vo
     const people = [...store.peers.values()].filter((p) => p.floor === ROOF).length;
     const roof = h(
       'button.floor-item',
-      { type: 'button', role: 'menuitem', class: onRoof ? 'here' : '', disabled: onRoof, title: onRoof ? "You're up on the roof" : 'Take the elevator up to the roof' },
+      { type: 'button', role: 'menuitem', class: onRoof ? 'here' : '', disabled: onRoof, title: onRoof ? "Você está no terraço" : 'Pegar o elevador até o terraço' },
       h('span.floor-no', { style: 'background:#2b2d42' }, '🍸'),
-      h('span.floor-text', {}, h('span.floor-name', {}, ROOF_NAME), h('span.floor-sub', {}, onRoof ? 'you are here' : 'A DJ, drinks and the city')),
-      h('span.floor-stats', {}, people ? h('span', { title: 'People up there' }, `🧑 ${people}`) : ''),
+      h('span.floor-text', {}, h('span.floor-name', {}, ROOF_NAME), h('span.floor-sub', {}, onRoof ? 'você está aqui' : 'DJ, bebidas e a vista da cidade')),
+      h('span.floor-stats', {}, people ? h('span', { title: 'Pessoas lá em cima' }, `🧑 ${people}`) : ''),
     );
     roof.addEventListener('click', () => {
       if (onRoof) return;
       close();
       opts.roof?.();
     });
-    el.replaceChildren(h('div.floor-menu-head', {}, `🏢 ${floors.length} floor${floors.length === 1 ? '' : 's'}`), ...(floors.length && opts.roof ? [roof] : []), ...items, add);
+    el.replaceChildren(h('div.floor-menu-head', {}, `🏢 ${floors.length} andar${floors.length === 1 ? '' : 'es'}`), ...(floors.length && opts.roof ? [roof] : []), ...items, add);
   };
 
   const place = () => {

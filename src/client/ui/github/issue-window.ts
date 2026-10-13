@@ -19,7 +19,7 @@ export function openIssue(first: GhIssue, net: Net, actions: BoardActions) {
   const itemUrl = it.url;
   let detail: GhIssueDetail | null = null;
   let error = '';
-  const close = h('button.btn.close', { 'aria-label': 'Close' }, '✕');
+  const close = h('button.btn.close', { 'aria-label': 'Fechar' }, '✕');
   const pill = h('span.pill');
   const conv = h('div.gh-conv');
   const thread = h('div.gh-items');
@@ -31,8 +31,8 @@ export function openIssue(first: GhIssue, net: Net, actions: BoardActions) {
   conv.append(h('div.gh-col', {}, thread, comment.el));
   // The footer stays put and renderFrame only shows, hides and relabels, so a board refresh never
   // pulls focus out of the provider picker.
-  const closeIssue = h('button.btn', { type: 'button', title: 'Close this issue on GitHub', onclick: () => openClose('issue', it, net, load) }, '✔️ Close issue…');
-  const queueProvider = providerPicker(store.project, `issue-provider-${it.number}`, 'Queue on');
+  const closeIssue = h('button.btn', { type: 'button', title: 'Fechar esta issue no GitHub', onclick: () => openClose('issue', it, net, load) }, '✔️ Fechar issue…');
+  const queueProvider = providerPicker(store.project, `issue-provider-${it.number}`, 'Fila em');
   const addIssueToQueue = () => {
     if (!queueProvider.valid()) return;
     modal.close();
@@ -40,7 +40,7 @@ export function openIssue(first: GhIssue, net: Net, actions: BoardActions) {
   };
   const queue = h('button.btn', { type: 'button', onclick: addIssueToQueue }) as HTMLButtonElement;
   const carry = actions.pickUp;
-  const pickUp = carry ? h('button.btn', { type: 'button', title: 'Carry its card to an empty desk, a worker or the queue board, and press E there', onclick: () => carry(it) }, '✋ Pick it up') : null;
+  const pickUp = carry ? h('button.btn', { type: 'button', title: 'Carregue seu cartão para uma mesa vazia, um trabalhador ou para o quadro da fila e pressione E lá', onclick: () => carry(it) }, '✋ Pegar') : null;
   const meta = h('div.gh-meta');
   const el = h(
     'div.modal.gh-window.issue',
@@ -51,14 +51,14 @@ export function openIssue(first: GhIssue, net: Net, actions: BoardActions) {
     h(
       'footer',
       {},
-      h('a.grow', { href: it.url, target: '_blank', rel: 'noopener noreferrer' }, 'Open on GitHub ↗'),
-      h('button.btn', { type: 'button', title: 'Send a worker your own prompt about this issue', onclick: () => actions.ask(issueContext(it), `Ask about issue #${it.number}`) }, '✍️ Ask a worker…'),
-      h('button.btn', { type: 'button', title: 'Workers take it on together in the meeting room: a debate, lead & team, map-reduce or red / blue', onclick: () => actions.meeting(issueMeeting(it.number, it.title)) }, '🤝 Meeting…'),
+      h('a.grow', { href: it.url, target: '_blank', rel: 'noopener noreferrer' }, 'Abrir no GitHub ↗'),
+      h('button.btn', { type: 'button', title: 'Envie ao trabalhador seu próprio prompt sobre esta issue', onclick: () => actions.ask(issueContext(it), `Perguntar sobre a issue #${it.number}`) }, '✍️ Perguntar ao trabalhador…'),
+      h('button.btn', { type: 'button', title: 'Os trabalhadores resolvem juntos na sala de reunião: debate, líder e equipe, map-reduce ou red / blue', onclick: () => actions.meeting(issueMeeting(it.number, it.title)) }, '🤝 Reunião…'),
       closeIssue,
       queueProvider.element,
       queue,
       pickUp,
-      h('button.btn.primary', { type: 'button', onclick: () => actions.assign(issuePrompt(it), `Hand issue #${it.number} to a worker`, it.number) }, '🤖 Hand to a worker'),
+      h('button.btn.primary', { type: 'button', onclick: () => actions.assign(issuePrompt(it), `Entregar a issue #${it.number} para um trabalhador`, it.number) }, '🤖 Entregar para um trabalhador'),
     ),
   );
   const renderFrame = () => {
@@ -67,14 +67,14 @@ export function openIssue(first: GhIssue, net: Net, actions: BoardActions) {
       ...nodes(
         avatar(it.author),
         h('b', {}, it.author),
-        h('span', {}, `opened this ${timeAgo(it.createdAt)}`),
-        it.assignees.length ? h('span', {}, `· 👤 ${it.assignees.join(', ')}`) : it.taken ? h('span', {}, '· 🤖 handed to a worker') : null,
+        h('span', {}, `abriu ${timeAgo(it.createdAt)}`),
+        it.assignees.length ? h('span', {}, `· 👤 ${it.assignees.join(', ')}`) : it.taken ? h('span', {}, '· 🤖 atribuído a um trabalhador') : null,
         ...it.labels.map(labelChip),
         labelButton('issue', () => it, net, (labels) => ((it = { ...it, labels }), renderFrame())),
       ),
     );
     pill.className = `pill ${isOpen ? 'done' : 'offline'}`;
-    pill.textContent = isOpen ? 'open' : 'closed';
+    pill.textContent = isOpen ? 'aberta' : 'fechada';
     const task = store.taskForIssue(it.number);
     const onQueue = !!task && task.status !== 'done';
     closeIssue.classList.toggle('hidden', !isOpen);
@@ -82,15 +82,15 @@ export function openIssue(first: GhIssue, net: Net, actions: BoardActions) {
     queueProvider.element.classList.toggle('hidden', !isOpen || onQueue);
     queue.classList.toggle('hidden', !isOpen);
     queue.disabled = onQueue;
-    queue.title = onQueue ? '' : 'A worker picks it up by itself when a desk is free and there is room under the worker limit';
-    queue.textContent = onQueue ? (task!.status === 'running' ? `🤖 ${task!.workerName ?? 'A worker'} is on it` : '📋 On the queue') : '📋 Add to queue';
+    queue.title = onQueue ? '' : 'Um trabalhador pega isso sozinho quando uma mesa estiver livre e houver espaço no limite de trabalhadores';
+    queue.textContent = onQueue ? (task!.status === 'running' ? `🤖 ${task!.workerName ?? 'Um trabalhador'} está nisso` : '📋 Na fila') : '📋 Adicionar à fila';
   };
   const render = () => {
-    thread.replaceChildren(commentCard({ id: 'body', author: it.author, body: detail?.body ?? it.body, createdAt: it.createdAt, url: it.url }, itemUrl, 'opened this'));
+    thread.replaceChildren(commentCard({ id: 'body', author: it.author, body: detail?.body ?? it.body, createdAt: it.createdAt, url: it.url }, itemUrl, 'abriu'));
     if (error) thread.append(errorBox(error, load));
-    else if (!detail) thread.append(spinnerRow('Loading comments…'));
-    else if (!detail.comments.length) thread.append(h('p.gh-quiet', {}, 'No comments yet.'));
-    else thread.append(...detail.comments.map((c) => commentCard(c, itemUrl, 'commented')));
+    else if (!detail) thread.append(spinnerRow('Carregando comentários…'));
+    else if (!detail.comments.length) thread.append(h('p.gh-quiet', {}, 'Nenhum comentário ainda.'));
+    else thread.append(...detail.comments.map((c) => commentCard(c, itemUrl, 'comentou')));
   };
   let generation = 0;
   function load() {
@@ -118,7 +118,7 @@ export function openIssue(first: GhIssue, net: Net, actions: BoardActions) {
     store.on('queue', renderFrame),
   ];
   const modal = openModal(el, {
-    doing: `📋 reading issue #${it.number}`,
+    doing: `📋 lendo issue #${it.number}`,
     onClose: () => {
       comment.dispose();
       unsubs.forEach((u) => u());

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -9,28 +9,28 @@
     <link rel="stylesheet" href="./lite.css" />
   </head>
   <body class="lite">
-    <!-- The 2D view (lite.ts): the office without the 3D, for a phone or a computer the 3D is too much for. -->
+    <!-- The 2D view (lite.ts): the office without the 3D, for a phone or a computer the 3D office is too much for. -->
     <header class="lite-bar">
-      <label class="lite-floor" title="The floor you're on: pick another to see its workers">
-        <span class="lite-floor-label">Floor</span>
-        <select id="floor" aria-label="Floor"></select>
+      <label class="lite-floor" title="O andar em que você está: escolha outro para ver seus trabalhadores">
+        <span class="lite-floor-label">Andar</span>
+        <select id="floor" aria-label="Andar"></select>
       </label>
-      <a id="to-3d" class="btn" href="/?3d=1" title="The 3D office, where you walk around">🏢 3D</a>
+      <a id="to-3d" class="btn" href="/?3d=1" title="O escritório 3D, onde você caminha pelo espaço">🏢 3D</a>
     </header>
     <main class="lite-main">
       <p id="floor-meta" class="lite-meta"></p>
       <div id="elsewhere" class="lite-elsewhere hidden"></div>
-      <h2 class="lite-h">Workers <span id="waiting-now" class="lite-waiting"></span></h2>
+      <h2 class="lite-h">Trabalhadores <span id="waiting-now" class="lite-waiting"></span></h2>
       <ul id="workers" class="lite-workers"></ul>
     </main>
-    <nav class="lite-nav" aria-label="Office">
+    <nav class="lite-nav" aria-label="Escritório">
       <button id="btn-issues" class="btn" type="button">📌 Issues <span class="n"></span></button>
       <button id="btn-pulls" class="btn" type="button">🔀 PRs <span class="n"></span></button>
-      <button id="btn-queue" class="btn" type="button">📋 Queue <span class="n"></span></button>
-      <button id="btn-new" class="btn primary" type="button">✨ New task</button>
+      <button id="btn-queue" class="btn" type="button">📋 Fila <span class="n"></span></button>
+      <button id="btn-new" class="btn primary" type="button">✨ Nova tarefa</button>
     </nav>
     <div id="toasts"></div>
-    <div id="conn" class="conn hidden">Reconnecting…</div>
+    <div id="conn" class="conn hidden">Reconectando…</div>
     <div id="modal-root"></div>
     <script type="module" src="./lite.ts"></script>
   </body>

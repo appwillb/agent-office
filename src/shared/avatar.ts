@@ -3,8 +3,8 @@
 
 export const SKIN_TONES = ['#ffe3cc', '#ffd7b5', '#f1c27d', '#e0ac69', '#c68642', '#a0663a', '#8d5524', '#5c3a21'];
 export const HAIR_COLORS = ['#2b2d42', '#4a3222', '#6f4e37', '#e9c46a', '#c1440e', '#d9d9d9', '#d62828', '#ff8fab', '#9d4edd', '#264653'];
-export const HAIR_COLOR_NAMES = ['Black', 'Dark brown', 'Brown', 'Blonde', 'Ginger', 'Silver', 'Red', 'Pink', 'Purple', 'Teal'];
-export const HAIR_STYLES = ['Short', 'Long', 'Bun', 'Spiky', 'Curly', 'Ponytail', 'Bald'];
+export const HAIR_COLOR_NAMES = ['Preto', 'Castanho escuro', 'Castanho', 'Loiro', 'Ruivo', 'Prateado', 'Vermelho', 'Rosa', 'Roxo', 'Azul-petróleo'];
+export const HAIR_STYLES = ['Curto', 'Longo', 'Coque', 'Espetado', 'Cacheado', 'Rabo de cavalo', 'Careca'];
 
 export interface Look {
   skin: number;

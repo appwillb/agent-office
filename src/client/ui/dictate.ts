@@ -25,7 +25,7 @@ export interface Dictation {
   drop(): void;
 }
 
-const TITLE = 'Dictate: hold to talk (or hold Ctrl+Space) and let go, and what you said is typed in. A quick click leaves it listening until you click again';
+const TITLE = 'Ditar: segure para falar (ou segure Ctrl+Espaço) e solte para digitar o que falou. Um clique rápido mantém ouvindo até você clicar novamente';
 
 /** The one that's listening now: there's one microphone, so a second 🎤 cuts off the first. */
 let active: { button: HTMLElement; abort(): void } | null = null;
@@ -51,20 +51,20 @@ export function dictation(target: DictateTarget, opts: { label?: string } = {}):
   if (speechSupport() === 'none') return { button: null, live, key: () => false, drop() {} };
   checkOnDevice();
 
-  const button = h('button.btn.dictate-mic', { type: 'button', title: TITLE, 'aria-label': 'Dictate', 'aria-pressed': 'false' }, opts.label ? `🎤 ${opts.label}` : '🎤');
+  const button = h('button.btn.dictate-mic', { type: 'button', title: TITLE, 'aria-label': 'Ditar', 'aria-pressed': 'false' }, opts.label ? `🎤 ${opts.label}` : '🎤');
   let listening: Listening | null = null;
   const paint = (interim = '') => {
     const on = !!listening;
     button.classList.toggle('live', on);
     button.setAttribute('aria-pressed', String(on));
     live.classList.toggle('hidden', !on);
-    live.textContent = !on ? '' : interim ? `🎙️ ${tail(interim)}` : '🎙️ Listening…';
+    live.textContent = !on ? '' : interim ? `🎙️ ${tail(interim)}` : '🎙️ Ouvindo…';
   };
 
   const start = () => {
     if (listening || target.off?.()) return;
     if (speechSupport() === 'insecure') {
-      toast('Dictation needs HTTPS (or localhost), like voice. Ask whoever runs the office to enable TLS.', 'warn');
+      toast('O ditado requer HTTPS (ou localhost), assim como a voz. Peça a quem administra o escritório para ativar TLS.', 'warn');
       return;
     }
     active?.abort();

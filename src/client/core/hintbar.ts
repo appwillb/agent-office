@@ -56,7 +56,7 @@ export function installHintBar(ctx: Ctx, core: CoreState, parts: Pick<Parts, 'po
     el.classList.toggle('hidden', !show);
     el.classList.toggle('on', !!target);
     el.classList.toggle('free', free);
-    el.querySelector('.look-hint')!.textContent = relookOnKey ? 'Press a key or click to look around' : 'Click to look around';
+    el.querySelector('.look-hint')!.textContent = relookOnKey ? 'Pressione uma tecla ou clique para olhar ao redor' : 'Clique para olhar ao redor';
   }
 
   return { renderHint, renderCrosshair };

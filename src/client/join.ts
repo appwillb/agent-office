@@ -24,30 +24,30 @@ async function post(body: Record<string, unknown>): Promise<{ ok: boolean; body:
 }
 
 async function peek() {
-  if (!token) return fail('This link is missing its invite code. Ask whoever sent it for the whole link.');
+  if (!token) return fail('Este link não contém o código de convite. Solicite o link completo a quem o enviou.');
   try {
     const r = await post({ peek: true });
-    if (!r.ok) return fail(r.body.error ?? 'This invite link does not work.');
+    if (!r.ok) return fail(r.body.error ?? 'Este link de convite é inválido.');
     const { name: invited, role, by, project } = r.body as { name?: string; role: string; by: string; project: string };
-    $('title').textContent = `Join the ${project} office`;
+    $('title').textContent = `Participar do escritório ${project}`;
     const sub = $('sub');
-    sub.replaceChildren(`${by} invited you${role === 'admin' ? ' as an ' : '. '}`);
+    sub.replaceChildren(`${by} convidou você${role === 'admin' ? ' como ' : '. '}`);
     if (role === 'admin') {
       const pill = document.createElement('span');
       pill.className = 'role';
       pill.textContent = 'admin';
       sub.append(pill, '.');
     }
-    sub.append(' Make your own account to come in.');
+    sub.append(' Crie sua conta para entrar.');
     if (invited) {
       name.value = invited;
       name.readOnly = true;
-      name.title = 'The name you were invited under';
+      name.title = 'O nome com o qual você foi convidado';
     }
     form.hidden = false;
     (invited ? password : name).focus();
   } catch {
-    fail('Server unreachable.');
+    fail('Servidor inacessível.');
   }
 }
 
@@ -55,7 +55,7 @@ form.addEventListener('submit', async (e) => {
   e.preventDefault();
   error.textContent = '';
   if (password.value !== again.value) {
-    error.textContent = "Those passwords don't match";
+    error.textContent = 'As senhas não coincidem';
     again.select();
     return;
   }
@@ -63,7 +63,7 @@ form.addEventListener('submit', async (e) => {
   try {
     const r = await post({ name: name.value.trim(), password: password.value });
     if (!r.ok) {
-      error.textContent = r.body.error ?? 'Could not make your account';
+      error.textContent = r.body.error ?? 'Não foi possível criar sua conta';
       return;
     }
     try {
@@ -73,7 +73,7 @@ form.addEventListener('submit', async (e) => {
     }
     location.replace('/');
   } catch {
-    error.textContent = 'Server unreachable';
+    error.textContent = 'Servidor inacessível';
   } finally {
     submit.disabled = false;
   }

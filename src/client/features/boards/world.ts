@@ -225,10 +225,10 @@ export class ServicesBoardTexture {
       g.textAlign = 'center';
       g.fillStyle = '#e9ecef';
       g.font = '900 52px Nunito, ui-rounded, system-ui, sans-serif';
-      g.fillText('No web servers running', W / 2, H / 2 - 20);
+      g.fillText('Nenhum servidor web rodando', W / 2, H / 2 - 20);
       g.fillStyle = 'rgba(233,236,239,.6)';
       g.font = '700 32px Nunito, ui-rounded, system-ui, sans-serif';
-      g.fillText('When a worker starts one, it shows up here', W / 2, H / 2 + 36);
+      g.fillText('Quando um trabalhador iniciar um servidor, ele aparecerá aqui', W / 2, H / 2 + 36);
       g.textAlign = 'left';
       this.texture.needsUpdate = true;
       return;
@@ -350,10 +350,10 @@ export class QueueBoardTexture {
       g.textAlign = 'center';
       g.fillStyle = '#2b2d42';
       g.font = `900 50px ${font}`;
-      g.fillText('Nothing queued', W / 2, H / 2 - 10);
+      g.fillText('Nada na fila', W / 2, H / 2 - 10);
       g.fillStyle = '#6b7280';
       g.font = `700 30px ${font}`;
-      g.fillText('Add issues from the 📌 Issues board, or press E here', W / 2, H / 2 + 44);
+      g.fillText('Adicione issues do quadro 📌 Issues, ou pressione E aqui', W / 2, H / 2 + 44);
       g.textAlign = 'left';
       this.texture.needsUpdate = true;
       return;

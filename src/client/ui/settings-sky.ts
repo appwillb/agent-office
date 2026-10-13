@@ -10,7 +10,7 @@ import { describeSky } from '../world/sky';
  * real time of day or a whole day and night every hour as buttons, and a note. Kept up to date until `off`.
  */
 export function outsideSetting(net: Net, outside: { now: string; live: boolean }, frame: (body: Node[]) => HTMLElement): { section: HTMLElement; off: () => void } {
-  const row = h('div.seg', { role: 'radiogroup', 'aria-label': 'The sky’s clock' });
+  const row = h('div.seg', { role: 'radiogroup', 'aria-label': 'Relógio do céu' });
   const now = h('p.outside-now');
   const note = h('p.setting-note');
   const paint = () => {
@@ -27,11 +27,11 @@ export function outsideSetting(net: Net, outside: { now: string; live: boolean }
             class: real === r ? 'on' : '',
             onclick: () => r !== !!store.sky?.realTime && net.send({ t: 'sky.clock', real: r }),
           },
-          r ? '🕰️ Real time (24 h)' : '⏩ A day every hour',
+          r ? '🕰️ Tempo real (24 h)' : '⏩ Um dia a cada hora',
         ),
       ),
     );
-    note.textContent = `Everyone sees the same sky: ${real ? 'the real time of day' : 'a whole day and night every hour'}, and ${outside.live ? 'the live weather where it is.' : 'weather that comes and goes. Start the office with --city to use a real city’s forecast.'}`;
+    note.textContent = `Todos veem o mesmo céu: ${real ? 'o horário real do dia' : 'um ciclo completo de dia e noite a cada hora'}, e ${outside.live ? 'o clima em tempo real do local.' : 'clima dinâmico. Inicie com --city para previsão real de uma cidade.'}`;
   };
   paint();
   return { section: frame([now, row, note]), off: store.on('sky', paint) };

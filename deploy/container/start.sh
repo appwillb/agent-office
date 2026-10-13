@@ -68,4 +68,4 @@ if [[ ! -f $RUN_HOME/agent-office/.agent-office/projects-folder.json ]]; then
 fi
 "${AS_USER[@]}" node /usr/local/lib/agent-office/onboard.js $RUN_HOME/workspace
 
-exec "${AS_USER[@]}" node /opt/agent-office/bin/agent-office.js --host 127.0.0.1 --port 4600 --no-open
+exec "${AS_USER[@]}" node /opt/agent-office/bin/agent-office.js --host 0.0.0.0 --port 4600 --no-open

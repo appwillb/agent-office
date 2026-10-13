@@ -37,5 +37,5 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 COPY --from=build /opt/agent-office /opt/agent-office
 RUN /opt/agent-office/deploy/container/install.sh
-EXPOSE 22
+EXPOSE 22 4600
 ENTRYPOINT ["/usr/bin/tini", "--", "/opt/agent-office/deploy/container/start.sh"]

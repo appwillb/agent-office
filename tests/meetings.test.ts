@@ -106,7 +106,7 @@ test('a debate runs its rounds and ends when the chair writes the decision', (t)
   assert.equal(f.start({ rounds: 3, output: 'docs/decision.md' }), undefined);
   let m = f.room.state().current!;
   assert.equal(m.seats.length, 3);
-  assert.deepEqual(m.seats.map((s) => s.role), ['Chair', 'Pragmatist', 'Skeptic']);
+  assert.deepEqual(m.seats.map((s) => s.role), ['Presidente', 'Pragmático', 'Cético']);
   assert.equal(f.workers.length, 3);
   assert.match(f.prompts[0].text, /Round 1 of 3, proposing/);
   assert.match(f.prompts[0].text, /Which cache should we use\?/);
@@ -153,7 +153,7 @@ test('a meeting has no token limit: what its workers use is added up and shown, 
   m = f.room.state().current!;
   assert.equal(m.status, 'done');
   assert.equal(f.room.clear('Ada'), undefined);
-  assert.match(f.room.state().past[0].summary, /Debate · 2 rounds · 60\.5M tokens · \$31\.50 · ✅ decision\.md/);
+  assert.match(f.room.state().past[0].summary, /Debate · 2 rodadas · 60\.5M tokens · \$31\.50 · ✅ decision\.md/);
 });
 
 test('a worker that ends its part without writing the file is reminded once, then the meeting stops', (t) => {
@@ -161,7 +161,7 @@ test('a worker that ends its part without writing the file is reminded once, the
   assert.equal(f.start({ rounds: 2, output: 'decision.md' }), undefined);
   for (const i of [0, 1, 2]) f.take(i);
   f.take(0, '', true);
-  assert.match(f.prompts.at(-1)!.text, /without writing \S*[\\/]decision\.md,/);
+  assert.match(f.prompts.at(-1)!.text, /sem gravar \S*[\\/]decision\.md,/);
   assert.equal(f.room.state().current!.status, 'running');
   f.take(0, '', true);
   const m = f.room.state().current!;
@@ -175,7 +175,7 @@ test('sending a worker home stops the meeting and names who left', async (t) => 
   await f.kill(f.room.state().current!.seats[2].workerId!);
   const m = f.room.state().current!;
   assert.equal(m.status, 'stopped');
-  assert.match(m.reason!, /the Skeptic \(Worker 3\) was sent home/);
+  assert.match(m.reason!, /the Cético \(Worker 3\) was sent home/);
 });
 
 test('red / blue ends early when red finds nothing more', (t) => {
@@ -183,7 +183,7 @@ test('red / blue ends early when red finds nothing more', (t) => {
   assert.equal(f.start({ pattern: 'redblue', prompt: 'The login change', rounds: 3 }), undefined);
   f.settle();
   let m = f.room.state().current!;
-  assert.deepEqual(m.seats.map((s) => s.role), ['Blue team', 'Red team']);
+  assert.deepEqual(m.seats.map((s) => s.role), ['Equipe Azul', 'Equipe Vermelha']);
   f.take(1, '- src/login.ts:12 — token compared with ==');
   m = f.room.state().current!;
   assert.equal(m.step, 2);
@@ -206,10 +206,10 @@ test('a review panel posts the combined review on the pull request', async (t) =
   let m = f.room.state().current!;
   assert.equal(m.output, 'reviews/pr-42.md');
   assert.equal(m.title, 'Review of PR #42');
-  assert.match(f.prompts[1].text, /through your lens, Security/);
+  assert.match(f.prompts[1].text, /sob a sua perspectiva, Segurança/);
   for (const i of [0, 1, 2]) f.take(i, '- a.ts:1 — something');
-  assert.match(f.prompts.at(-1)!.text, /\*\*\[Security\]\*\*/);
-  f.take(0, 'Looks fine. **[Security]** a.ts:1 — something');
+  assert.match(f.prompts.at(-1)!.text, /\*\*\[Segurança\]\*\*/);
+  f.take(0, 'Looks fine. **[Segurança]** a.ts:1 — something');
   await new Promise((r) => setImmediate(r));
   m = f.room.state().current!;
   assert.equal(m.status, 'done');
@@ -225,16 +225,16 @@ test('map-reduce hands each mapper its own parts', (t) => {
   const mapper2 = f.prompts.find((p) => p.id === f.workers[2].id)!.text;
   assert.match(mapper1, /- src\/a\.ts\n- src\/c\.ts/);
   assert.match(mapper2, /- src\/b\.ts\n/);
-  assert.match(f.prompts[0].text, /Round 1 has no part for you/);
+  assert.match(f.prompts[0].text, /A rodada 1 não tem tarefas para você/);
 });
 
 test('bad requests are turned away before anyone sits down', (t) => {
   const f = fixture(); t.after(() => f.close());
   assert.match(f.start({ prompt: '  ' }) ?? '', /what the meeting is about/);
   assert.match(f.start({ output: '../x.md' }) ?? '', /\.\./);
-  assert.match(f.start({ output: '/etc/x' }) ?? '', /relative/);
+  assert.match(f.start({ output: '/etc/x' }) ?? '', /relativo/);
   assert.match(f.start({ output: '.agent-office/x.md' }) ?? '', /\.agent-office/);
-  assert.match(f.start({ roles: ['a', 'b', 'c', 'd', 'e', 'f'] }) ?? '', /2 to 5 workers/);
+  assert.match(f.start({ roles: ['a', 'b', 'c', 'd', 'e', 'f'] }) ?? '', /2 to 5/);
   assert.match(f.start({ pattern: 'redblue', roles: ['a', 'b', 'c'] }) ?? '', /seats 2 workers/);
   assert.equal(f.workers.length, 0);
   assert.equal(f.start({}), undefined);
@@ -248,7 +248,7 @@ test('in a git project the output is committed on the meeting branch, which outl
   assert.match(m0.worktree!.branch, /^office\/meeting-pick-a-cache-/);
   assert.ok(f.workers.every((w) => w.worktree?.path === m0.worktree!.path));
   // Every file a part names is a full path inside the meeting's worktree, never the project folder around it.
-  assert.ok(f.prompts[0].text.includes(`Write it to ${path.join(f.cwd(), '.meeting', 'r1-1-chair.md')},`));
+  assert.ok(f.prompts[0].text.includes(`Grave em ${path.join(f.cwd(), '.meeting', 'r1-1-presidente.md')}`));
   for (const i of [0, 1, 2]) f.take(i);
   f.take(0, '# Redis\n');
   for (let i = 0; i < 50 && !f.room.state().current!.commit; i++) await new Promise((r) => setTimeout(r, 20));
@@ -265,7 +265,7 @@ test('in a git project the output is committed on the meeting branch, which outl
   assert.ok(!existsSync(path.join(f.dir, m.worktree!.path)));
   assert.equal(git('rev-parse', '--abbrev-ref', m.worktree!.branch), m.worktree!.branch);
   assert.equal(f.room.state().current, null);
-  assert.match(f.room.state().past[0].summary, /Debate · 2 rounds · 0 tokens · \$0\.00 · ✅ docs\/decision\.md on office\/meeting-pick-a-cache-/);
+  assert.match(f.room.state().past[0].summary, /Debate · 2 rodadas · 0 tokens · \$0\.00 · ✅ docs\/decision\.md on office\/meeting-pick-a-cache-/);
 });
 
 test('Pi meetings retain the chosen model and thinking level for every seat', (t) => {
@@ -303,7 +303,7 @@ test('a meeting says what the office’s rewritten prompts say, and seats the de
   });
   t.after(() => f.close());
   assert.equal(f.start({ rounds: 3, provider: undefined }), undefined);
-  assert.equal(f.prompts[0].text, `You are the Chair. Topic: Which cache should we use?{{nothing}}\n\nRound 1 of 3, proposing. Pitch it as the Chair, into ${path.join(f.cwd(), '.agent-office', 'meetings', f.room.state().current!.id, 'r1-1-chair.md')}.`);
+  assert.equal(f.prompts[0].text, `You are the Presidente. Topic: Which cache should we use?{{nothing}}\n\nRound 1 of 3, proposing. Pitch it as the Presidente, into ${path.join(f.cwd(), '.agent-office', 'meetings', f.room.state().current!.id, 'r1-1-presidente.md')}.`);
   assert.deepEqual(f.workers.map((w) => [w.provider, w.model, w.effort]), Array(3).fill(['claude', 'sonnet', 'medium']));
   // A worker that ends its turn without its part is nudged in the office's words.
   const w = f.workers[0];
@@ -311,7 +311,7 @@ test('a meeting says what the office’s rewritten prompts say, and seats the de
   f.room.onWorker(w);
   w.status = 'done';
   f.room.onWorker(w);
-  assert.match(f.prompts.at(-1)!.text, /^Still waiting on \S+r1-1-chair\.md!$/);
+  assert.match(f.prompts.at(-1)!.text, /^Still waiting on \S+r1-1-presidente\.md!$/);
   // Picked, the meeting's own choice wins.
   const g = fixture({ officeDefault: { provider: 'claude', model: 'sonnet' } });
   t.after(() => g.close());
@@ -321,9 +321,9 @@ test('a meeting says what the office’s rewritten prompts say, and seats the de
 
 test('a pattern with a set number of rounds says so, and names them; a range is left to pick from', (t) => {
   assert.deepEqual(fixedRounds(MEETING_PATTERNS.lead), {
-    line: '3 rounds · fixed by the Lead & team workflow',
-    stages: 'Planning → Execution → Merge',
-    why: 'Lead & team always runs 3 rounds: Planning → Execution → Merge. Each one is a step of the pattern, so there’s none to add or take away.',
+    line: '3 rodadas · fixado pelo fluxo Líder e equipe',
+    stages: 'Planejamento → Execução → Mesclagem',
+    why: 'Líder e equipe sempre executa 3 rodadas: Planejamento → Execução → Mesclagem. Cada uma é uma etapa do padrão, então não há como adicionar ou remover.',
   });
   for (const id of MEETING_PATTERN_IDS) {
     const p = MEETING_PATTERNS[id];

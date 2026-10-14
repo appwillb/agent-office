@@ -38,13 +38,13 @@ test('every default only uses placeholders it says it has, and names the ones th
 test('the boards send what they always did', () => {
   assert.equal(
     fillPrompt(PROMPTS['issue.work'].text, { number: 7, title: 'Dog barks', url: 'u' }),
-    'Work on GitHub issue #7: "Dog barks".\n\nRead it first with `gh issue view 7 --comments`. Create a new branch, implement the change, verify it, then open a pull request that closes #7.',
+    'Trabalhe na issue do GitHub #7: "Dog barks".\n\nLeia primeiro com `gh issue view 7 --comments`. Crie uma nova branch, implemente a alteração, valide-a e abra um pull request que fecha a issue #7.',
   );
   const merge = fillPrompt(PROMPTS['pull.fixMerge'].text, { number: 5, title: 'T', url: 'https://github.com/o/r/pull/5', branch: 'feat', base: 'main', repo: 'o/r', merge: 'gh pr merge 5 --squash --repo o/r' });
-  assert.match(merge, /^Get pull request #5 "T" \(https:\/\/github\.com\/o\/r\/pull\/5\) ready and merge it\.\n\n1\. Get onto its branch: `gh pr checkout 5`\. If git says `feat` is already checked out/);
+  assert.match(merge, /^Prepare o pull request #5 "T" \(https:\/\/github\.com\/o\/r\/pull\/5\) e faça o merge\.\n\n1\. Acesse a branch: `gh pr checkout 5`\. Se o git informar que `feat` já está em checkout/);
   assert.match(merge, /git push origin HEAD:feat/);
   assert.match(merge, /gh api repos\/o\/r\/pulls\/5\/comments/);
-  assert.match(merge, /6\. When the checks pass and no feedback is left, merge it: `gh pr merge 5 --squash --repo o\/r`\./);
+  assert.match(merge, /6\. Quando todas as verificações passarem e não houver feedback pendente, faça o merge: `gh pr merge 5 --squash --repo o\/r`\./);
   assert.doesNotMatch(merge, /\{\{/);
 });
 

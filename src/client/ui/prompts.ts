@@ -51,11 +51,11 @@ export function openPromptEditor(net: Net, first: PromptId = PROMPT_IDS[0]) {
   const ta = h('textarea.prompt-text', { spellcheck: 'false', 'aria-label': 'Prompt', maxlength: PROMPT_MAX }) as HTMLTextAreaElement;
   const vars = h('div.prompt-vars');
   const warnings = h('div.prompt-warnings');
-  const reset = h('button.btn', { type: 'button', title: 'Put the office’s own wording back in the box (then Save)' }, '↺ Default');
-  const undo = h('button.btn', { type: 'button', title: 'Back to what’s saved' }, 'Undo changes');
-  const save = h('button.btn.primary', { type: 'button' }, 'Save');
+  const reset = h('button.btn', { type: 'button', title: 'Restaurar o texto padrão do escritório (depois clique em Salvar)' }, '↺ Padrão');
+  const undo = h('button.btn', { type: 'button', title: 'Voltar ao que está salvo' }, 'Desfazer alterações');
+  const save = h('button.btn.primary', { type: 'button' }, 'Salvar');
   const note = h('span.grow');
-  const close = h('button.btn.close', { 'aria-label': 'Close' }, '✕');
+  const close = h('button.btn.close', { 'aria-label': 'Fechar' }, '✕');
   const el = h(
     'div.modal.prompts',
     { role: 'dialog', 'aria-label': 'Prompts' },
@@ -71,7 +71,7 @@ export function openPromptEditor(net: Net, first: PromptId = PROMPT_IDS[0]) {
       const mark = b.querySelector('.prompt-mark')!;
       const edited = !!store.prompts.custom[id];
       mark.textContent = dirty(id) ? '●' : edited ? '✎' : '';
-      b.title = dirty(id) ? 'Not saved yet' : edited ? 'Rewritten' : 'The default';
+      b.title = dirty(id) ? 'Não salvo ainda' : edited ? 'Reescrito' : 'O padrão';
     }
   };
 
@@ -79,9 +79,9 @@ export function openPromptEditor(net: Net, first: PromptId = PROMPT_IDS[0]) {
     const def = PROMPTS[current];
     const inText = placeholders(ta.value);
     const lines: string[] = [];
-    if (!ta.value.trim() && !def.optional) lines.push('It can’t be empty: write something, or put the default back.');
-    for (const name of inText) if (!(name in def.vars)) lines.push(`{{${name}}} isn’t filled in here, so it’s sent just as it’s written.`);
-    for (const name of def.needs ?? []) if (!inText.includes(name)) lines.push(`The office counts on {{${name}}} (${def.vars[name].toLowerCase()}): without it the worker isn’t told.`);
+    if (!ta.value.trim() && !def.optional) lines.push('Não pode ficar vazio: escreva algo ou restaure o padrão.');
+    for (const name of inText) if (!(name in def.vars)) lines.push(`{{${name}}} não é preenchido aqui, então será enviado exatamente como foi escrito.`);
+    for (const name of def.needs ?? []) if (!inText.includes(name)) lines.push(`O escritório depende de {{${name}}} (${def.vars[name].toLowerCase()}): sem isso o trabalhador não será informado.`);
     warnings.replaceChildren(...lines.map((l) => h('p', {}, `⚠️ ${l}`)));
   };
 
@@ -90,27 +90,27 @@ export function openPromptEditor(net: Net, first: PromptId = PROMPT_IDS[0]) {
     const admin = store.me.admin;
     const edit = store.prompts.custom[current];
     heading.textContent = def.label;
-    status.textContent = dirty(current) ? '● Not saved yet' : edit ? `✎ Rewritten by ${edit.by} ${timeAgo(edit.at)}` : 'The default';
+    status.textContent = dirty(current) ? '● Não salvo ainda' : edit ? `✎ Reescrito por ${edit.by} ${timeAgo(edit.at)}` : 'O padrão';
     status.classList.toggle('dirty', dirty(current));
-    used.textContent = def.used + (def.optional ? ' Leave it empty to send nothing.' : '');
+    used.textContent = def.used + (def.optional ? ' Deixe vazio para não enviar nada.' : '');
     ta.readOnly = !admin;
     const names = Object.entries(def.vars);
     vars.replaceChildren(
       ...(names.length
         ? [
-            h('span.prompt-vars-head', {}, admin ? 'Placeholders (click one to put it in):' : 'Placeholders:'),
+            h('span.prompt-vars-head', {}, admin ? 'Variáveis (clique em uma para inserir):' : 'Variáveis:'),
             ...names.map(([name, desc]) =>
               h('button.prompt-var', { type: 'button', title: desc, disabled: !admin, onclick: () => insert(`{{${name}}}`) }, h('code', {}, `{{${name}}}`), h('small', {}, desc)),
             ),
           ]
-        : [h('span.prompt-vars-head', {}, 'No placeholders: it’s sent just as it’s written.')]),
+        : [h('span.prompt-vars-head', {}, 'Sem variáveis: é enviado exatamente como foi escrito.')]),
     );
     reset.classList.toggle('hidden', !admin);
     reset.toggleAttribute('disabled', norm(ta.value) === def.text);
     undo.classList.toggle('hidden', !admin || !dirty(current));
     save.classList.toggle('hidden', !admin);
     save.toggleAttribute('disabled', !dirty(current));
-    note.textContent = admin ? 'For the whole office, on every floor. A rewritten prompt is used from the next time it’s sent.' : 'Only admins can change the office’s prompts. This is what they say now.';
+    note.textContent = admin ? 'Para todo o escritório, em todos os andares. O prompt alterado é usado a partir do próximo envio.' : 'Apenas administradores podem alterar os prompts do escritório. É isto que eles dizem agora.';
     paintItems();
     paintWarnings();
   };

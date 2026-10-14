@@ -28,14 +28,14 @@ export function offerLite(why: 'touch' | 'slow') {
   offered = true;
   const say =
     why === 'touch'
-      ? '📱 On a phone? The 2D view is made for it: every worker and how it’s doing, its terminal, and the boards.'
-      : '🐢 The 3D office is running slowly on this computer. The 2D view has the workers, their terminals and the boards, without the 3D.';
-  const stay = h('button.btn', { type: 'button' }, 'Stay in 3D');
+      ? '📱 Está no celular? O modo 2D foi feito para ele: todos os trabalhadores, terminais e quadros sem o peso do 3D.'
+      : '🐢 O escritório 3D está pesado neste computador. O modo 2D traz todos os trabalhadores, terminais e quadros sem gráficos 3D.';
+  const stay = h('button.btn', { type: 'button' }, 'Ficar no 3D');
   const el = h(
     'div.lite-offer.panel',
-    { role: 'dialog', 'aria-label': 'Try the 2D view' },
+    { role: 'dialog', 'aria-label': 'Experimentar modo 2D' },
     h('p', {}, say),
-    h('div.lite-offer-btns', {}, h('a.btn.primary', { href: '/lite' }, 'Open the 2D view'), stay),
+    h('div.lite-offer-btns', {}, h('a.btn.primary', { href: '/lite' }, 'Abrir modo 2D'), stay),
   );
   stay.addEventListener('click', () => {
     try {

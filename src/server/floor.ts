@@ -70,6 +70,8 @@ export interface FloorContext {
   lent(floor: Floor): boolean;
   /** Whether the building's map locks up workers sent home (see MapPlan.sendHome), instead of letting them go. */
   locksUp(): boolean;
+  /** All worker names in use across all floors in the building. */
+  allWorkerNames?(): Set<string>;
 }
 
 /** The open pull request on a floor's board whose head is `branch`. */
@@ -198,6 +200,7 @@ export class Floor {
         data: (workerId, data, viewers) => ctx.termData(workerId, data, viewers),
         screen: (workerId, frame) => ctx.emit(this, { t: 'screen', workerId, ...frame }, true),
         toast: (text, level) => ctx.toast(this, text, level),
+        usedNames: () => ctx.allWorkerNames?.() ?? new Set(),
       },
       ctx.ledger,
       ctx.capacity,

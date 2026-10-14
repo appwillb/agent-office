@@ -21,7 +21,9 @@ export interface PromptOptions {
   providerOption?: boolean;
   /** Other floors' projects a new worker in its own worktree can work in too (see WorkerInfo.repos). */
   repoOptions?: { id: string; name: string }[];
-  onSubmit(text: string, opts: { worktree: boolean; provider?: AgentProvider; model?: string; effort?: AgentEffort; repos: string[] }): void;
+  /** Offer custom worker name option (only when hiring a new worker). */
+  nameOption?: boolean;
+  onSubmit(text: string, opts: { worktree: boolean; provider?: AgentProvider; model?: string; effort?: AgentEffort; repos: string[]; name?: string }): void;
 }
 
 const WT_KEY = 'agent-office.worktree';
@@ -67,6 +69,15 @@ export function openPrompt(opts: PromptOptions) {
         '🌿 Trabalhar em sua própria branch & git worktree',
       )
     : null;
+  const nameInput = opts.nameOption
+    ? (h('input', {
+        type: 'text',
+        placeholder: 'ex: Lucas, Técnico Hardware (ou deixe vazio para sorteio)',
+        style: 'width:100%;margin:4px 0 10px;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg-input, rgba(0,0,0,0.2));color:inherit;font-size:13px;box-sizing:border-box',
+        'aria-label': 'Nome do agente',
+      }) as HTMLInputElement)
+    : null;
+  const nameRow = nameInput ? h('label', { style: 'display:block;margin:0 0 8px;font-size:12px;font-weight:700;color:var(--muted)' }, '👤 Nome do trabalhador (opcional)', nameInput) : null;
   const repos = repoPicker(opts.worktreeOption ? opts.repoOptions : undefined, wtBox);
   const provider: ProviderPicker | null = opts.providerOption ? providerPicker(store.project, 'prompt-provider') : null;
   const submit = h('button.btn.primary', { type: 'submit' }, opts.submitLabel ?? 'Enviar ✨');
@@ -75,7 +86,7 @@ export function openPrompt(opts: PromptOptions) {
     'form.modal',
     { role: 'dialog', 'aria-label': opts.title },
     h('header', {}, h('h2', {}, opts.title)),
-    h('div.body', {}, opts.warning ? h('p.setting-note.bad', { style: 'margin:0 0 10px', role: 'alert' }, opts.warning) : null, opts.subtitle ? h('p', { style: 'margin:0 0 10px;font-weight:700;color:var(--muted)' }, opts.subtitle) : null, dictateField(ta), provider?.element ?? null, wtRow, repos.element),
+    h('div.body', {}, opts.warning ? h('p.setting-note.bad', { style: 'margin:0 0 10px', role: 'alert' }, opts.warning) : null, opts.subtitle ? h('p', { style: 'margin:0 0 10px;font-weight:700;color:var(--muted)' }, opts.subtitle) : null, nameRow, dictateField(ta), provider?.element ?? null, wtRow, repos.element),
     h('footer', {}, h('span.grow', {}, 'Enter para enviar · Shift+Enter para nova linha'), cancel, submit),
   ) as HTMLFormElement;
   form.noValidate = true;
@@ -98,7 +109,7 @@ export function openPrompt(opts: PromptOptions) {
       }
     }
     const worktree = !!opts.worktreeOption && wtBox.checked;
-    opts.onSubmit(text, { worktree, provider: provider?.value(), model: provider?.model(), effort: provider?.effort(), repos: worktree ? repos.value() : [] });
+    opts.onSubmit(text, { worktree, provider: provider?.value(), model: provider?.model(), effort: provider?.effort(), repos: worktree ? repos.value() : [], name: nameInput?.value.trim() || undefined });
   };
   form.addEventListener('submit', (e) => {
     e.preventDefault();

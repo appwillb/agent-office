@@ -119,6 +119,13 @@ export async function openFloors(ctx: Ctx, hookPort: number): Promise<FloorsOpen
     locksUp: () => !!ctx.maps.plan().sendHome?.keeps,
     runAs: ctx.signins,
     ghAs: (owner) => (owner ? ctx.signins.ghAs(owner) : undefined),
+    allWorkerNames: () => {
+      const names = new Set<string>();
+      for (const f of floors.values()) {
+        for (const w of f.workers.list()) names.add(w.name.replace(/ 🐚$/, ''));
+      }
+      return names;
+    },
   };
   /** Whether a worker on `from` works in `on`'s project too (see WorkerInfo.repos). */
   const worksIn = (from: Floor, on: Floor) => from.workers.list().some((w) => w.repos?.some((r) => r.floor === on.id));

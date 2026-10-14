@@ -224,7 +224,7 @@ test("a worker's row says where its pull request stands, and whether it would go
   const watched = workerRow(worker('bolt', { status: 'working', viewers: [] }), view);
   assert.equal(watched.staying, 'still working');
   assert.equal(workerRow(worker('mochi'), view, 'mochi').you, true);
-  assert.equal(workerRow(worker('pat', { deskId: 'station-pulls' }), view).board, 'PR agent');
+  assert.equal(workerRow(worker('pat', { deskId: 'station-pulls' }), view).board, 'Agente de PRs');
   assert.equal(notLeaving(worker('bolt', { viewers: ['Ada', 'Grace'] })), 'Ada, Grace have its terminal open');
   assert.equal(notLeaving(worker('bolt')), undefined);
 });

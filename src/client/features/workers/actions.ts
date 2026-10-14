@@ -77,8 +77,8 @@ export function installWorkerActions(ctx: Ctx, core: CoreState, parts: WorkerAct
     return true;
   }
 
-  function hire(deskId: string, prompt?: string, worktree = false, provider?: AgentProvider, model?: string, effort?: AgentEffort, issue?: number, repos?: string[], via?: 'herald') {
-    net.send({ t: 'worker.spawn', deskId, prompt, worktree, provider, model, effort, issue, repos: repos?.length ? repos : undefined, via });
+  function hire(deskId: string, prompt?: string, worktree = false, provider?: AgentProvider, model?: string, effort?: AgentEffort, issue?: number, repos?: string[], via?: 'herald', name?: string) {
+    net.send({ t: 'worker.spawn', deskId, prompt, worktree, provider, model, effort, issue, repos: repos?.length ? repos : undefined, via, name });
     // The moment notifications start to matter: ask once (it has to come from a key press or click).
     if (settings.notify && notifyPermission() === 'default' && !askedToNotify) {
       askedToNotify = true;
@@ -102,10 +102,11 @@ export function installWorkerActions(ctx: Ctx, core: CoreState, parts: WorkerAct
         subtitle: 'Um novo trabalhador se sentará e começará a trabalhar imediatamente.',
         warning: pressureNote(store.machine),
         submitLabel: 'Contratar e iniciar',
+        nameOption: true,
         providerOption: true,
         worktreeOption: !!store.project?.branch,
         repoOptions: repoChoices(),
-        onSubmit: (text, o) => hire(deskId, text, o.worktree, o.provider, o.model, o.effort, undefined, o.repos),
+        onSubmit: (text, o) => hire(deskId, text, o.worktree, o.provider, o.model, o.effort, undefined, o.repos, undefined, o.name),
       });
     } else if (w.lost) {
       fixLostWorktree(w);
@@ -138,11 +139,12 @@ export function installWorkerActions(ctx: Ctx, core: CoreState, parts: WorkerAct
       warning: pressureNote(store.machine),
       placeholder: 'Primeira tarefa opcional…',
       submitLabel: 'Contratar e iniciar',
+      nameOption: true,
       allowEmpty: true,
       providerOption: true,
       worktreeOption: !!store.project?.branch,
       repoOptions: repoChoices(),
-      onSubmit: (text, o) => hire(deskId, text || undefined, o.worktree, o.provider, o.model, o.effort, undefined, o.repos),
+      onSubmit: (text, o) => hire(deskId, text || undefined, o.worktree, o.provider, o.model, o.effort, undefined, o.repos, undefined, o.name),
     });
   }
 

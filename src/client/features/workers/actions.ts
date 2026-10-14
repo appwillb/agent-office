@@ -73,7 +73,7 @@ export function installWorkerActions(ctx: Ctx, core: CoreState, parts: WorkerAct
   function officeIsFull(): boolean {
     const m = store.machine;
     if (!officeFull(m)) return false;
-    toast(`🚫 The office is at its limit of ${m.limit} worker${m.limit === 1 ? '' : 's'} — send one home before hiring another`, 'warn');
+    toast(`🚫 O escritório atingiu o limite de ${m.limit} trabalhador(es) — dispense um antes de contratar outro`, 'warn');
     return true;
   }
 
@@ -94,13 +94,14 @@ export function installWorkerActions(ctx: Ctx, core: CoreState, parts: WorkerAct
   function promptAtDesk(deskId: string) {
     const w = store.workerAtDesk(deskId);
     const desk = plan().byId.get(deskId)!;
+    const deskLabelPt = desk.label.replace('Desk', 'Mesa').replace('Bean bag', 'Puff');
     if (!w) {
       if (officeIsFull()) return;
       openPrompt({
-        title: `✨ New task at ${desk.label}`,
-        subtitle: 'A fresh worker will sit down and start on this right away.',
+        title: `✨ Nova tarefa na ${deskLabelPt}`,
+        subtitle: 'Um novo trabalhador se sentará e começará a trabalhar imediatamente.',
         warning: pressureNote(store.machine),
-        submitLabel: 'Hire & start',
+        submitLabel: 'Contratar e iniciar',
         providerOption: true,
         worktreeOption: !!store.project?.branch,
         repoOptions: repoChoices(),
@@ -109,18 +110,18 @@ export function installWorkerActions(ctx: Ctx, core: CoreState, parts: WorkerAct
     } else if (w.lost) {
       fixLostWorktree(w);
     } else if (isAsleep(w.status)) {
-      toast(`${w.name} is asleep — press R to resume first`, 'warn');
+      toast(`${w.name} está dormindo — pressione R para retomar primeiro`, 'warn');
     } else if (w.kind === 'shell') {
       openPrompt({
-        title: `🐚 Run in ${w.name}`,
+        title: `🐚 Executar em ${w.name}`,
         placeholder: 'npm run dev',
-        submitLabel: 'Run ▶',
+        submitLabel: 'Executar ▶',
         onSubmit: (text) => net.send({ t: 'worker.prompt', workerId: w.id, prompt: text }),
       });
     } else {
       openPrompt({
-        title: `💬 Prompt ${w.name}`,
-        subtitle: w.status === 'working' ? `${w.name} is busy — your message will be queued in their input box.` : undefined,
+        title: `💬 Mensagem para ${w.name}`,
+        subtitle: w.status === 'working' ? `${w.name} está ocupado — sua mensagem será enfileirada na caixa de entrada.` : undefined,
         onSubmit: (text) => net.send({ t: 'worker.prompt', workerId: w.id, prompt: text }),
       });
     }
@@ -129,13 +130,14 @@ export function installWorkerActions(ctx: Ctx, core: CoreState, parts: WorkerAct
   /** Direct hire from an empty desk, with an optional first prompt and provider choice. */
   function hireAtDesk(deskId: string) {
     const desk = plan().byId.get(deskId)!;
+    const deskLabelPt = desk.label.replace('Desk', 'Mesa').replace('Bean bag', 'Puff');
     if (officeIsFull()) return;
     openPrompt({
-      title: `✨ Hire a worker at ${desk.label}`,
-      subtitle: 'You can start with an empty prompt and send work later.',
+      title: `✨ Contratar um trabalhador na ${deskLabelPt}`,
+      subtitle: 'Você pode começar com um prompt vazio e enviar o trabalho depois.',
       warning: pressureNote(store.machine),
-      placeholder: 'Optional first task…',
-      submitLabel: 'Hire & start',
+      placeholder: 'Primeira tarefa opcional…',
+      submitLabel: 'Contratar e iniciar',
       allowEmpty: true,
       providerOption: true,
       worktreeOption: !!store.project?.branch,
@@ -148,13 +150,13 @@ export function installWorkerActions(ctx: Ctx, core: CoreState, parts: WorkerAct
   function killWorker(id: string) {
     const w = store.workers.get(id);
     if (!w) return;
-    const where = plan().byId.get(w.deskId)?.label ?? 'the desk';
-    const session = w.kind === 'shell' ? 'shared shell' : `${providerLabel(w.provider, store.project)} session`;
+    const where = plan().byId.get(w.deskId)?.label.replace('Desk', 'Mesa').replace('Bean bag', 'Puff') ?? 'a mesa';
+    const session = w.kind === 'shell' ? 'terminal compartilhado' : `sessão de ${providerLabel(w.provider, store.project)}`;
     if (w.meeting) {
       // The meeting's worktree is the whole table's: it's tidied away once they've all gone.
       const m = store.meeting.current;
       const on = m?.id === w.meeting && m.status === 'running';
-      confirmDialog(`Send ${w.name} home?`, on ? `${w.name} is in the meeting on “${m.title}”, which stops without it.` : `${w.name} leaves the meeting room.`, 'Send home', () => net.send({ t: 'worker.kill', workerId: id }));
+      confirmDialog(`Dispensar ${w.name}?`, on ? `${w.name} está na reunião sobre “${m.title}”, que será interrompida sem ele.` : `${w.name} sairá da sala de reunião.`, 'Dispensar', () => net.send({ t: 'worker.kill', workerId: id }));
       return;
     }
     if (w.worktree) {
@@ -164,16 +166,16 @@ export function installWorkerActions(ctx: Ctx, core: CoreState, parts: WorkerAct
         name: w.name,
         where,
         worktree: w.worktree,
-        repos: w.repos?.length ? [w.worktree.path.split('/').pop() ?? 'its own', ...w.repos.map((r) => r.name)] : undefined,
+        repos: w.repos?.length ? [w.worktree.path.split('/').pop() ?? 'seu próprio', ...w.repos.map((r) => r.name)] : undefined,
         ask: () => net.send({ t: 'worker.worktree', workerId: id }),
         onConfirm: (cleanup) => net.send({ t: 'worker.kill', workerId: id, cleanup }),
       });
       return;
     }
     const body = plan().byId.get(w.deskId)?.station
-      ? `This stops its ${session} for everyone, and it forgets what it was asked. The next prompt at the ${where} starts a fresh one.`
-      : `This stops the ${session} at ${where} for everyone and frees the desk.`;
-    confirmDialog(`Send ${w.name} home?`, body, 'Send home', () => net.send({ t: 'worker.kill', workerId: id }));
+      ? `Isso encerra o ${session} para todos, e o que foi solicitado será esquecido. A próxima mensagem na ${where} iniciará uma nova sessão.`
+      : `Isso encerra o ${session} na ${where} para todos e libera o lugar.`;
+    confirmDialog(`Dispensar ${w.name}?`, body, 'Dispensar', () => net.send({ t: 'worker.kill', workerId: id }));
   }
 
   /** E at a board agent: type it a request. It's hired with it when nobody is there yet. */
@@ -185,23 +187,23 @@ export function installWorkerActions(ctx: Ctx, core: CoreState, parts: WorkerAct
     const info = STATION_INFO[kind];
     // A prompt typed into a question it's asking would answer it.
     if (w?.status === 'needs_input') {
-      toast(`The ${name} is waiting on an answer — here's its terminal`, 'warn');
+      toast(`O ${name} está aguardando uma resposta — abrindo o terminal`, 'warn');
       return openWorkerTerminal(w.id);
     }
     // Nobody there yet: asking hires the agent.
     if (!w && officeIsFull()) return;
     const subtitle = !w
-      ? `${info.does}, in a terminal of my own: press O at the kiosk to watch.`
+      ? `${info.does}, em um terminal próprio: pressione O no totem para acompanhar.`
       : isAsleep(w.status)
-        ? `The ${name} is asleep: this wakes it up, and it carries on where it left off.`
+        ? `O ${name} está dormindo: isso irá acordá-lo e ele continuará de onde parou.`
         : isBusy(w.status)
-          ? `The ${name} is busy. Your prompt waits in its input box until it's done.`
+          ? `O ${name} está ocupado. Sua solicitação aguardará na caixa de entrada até ele terminar.`
           : undefined;
     openPrompt({
-      title: `${info.icon} Ask the ${name}`,
+      title: `${info.icon} Perguntar ao ${name}`,
       subtitle,
-      placeholder: `e.g. ${info.example}`,
-      submitLabel: 'Send ✨',
+      placeholder: `ex: ${info.example}`,
+      submitLabel: 'Enviar ✨',
       warning: w ? undefined : pressureNote(store.machine),
       onSubmit: (text) => net.send({ t: 'station.prompt', deskId, prompt: text }),
     });
@@ -209,7 +211,7 @@ export function installWorkerActions(ctx: Ctx, core: CoreState, parts: WorkerAct
 
   function resumeWorker(w: WorkerInfo) {
     if (w.lost) return fixLostWorktree(w);
-    if (!w.sessionId && w.kind !== 'shell') toast(`${w.name} has no saved Claude session — starting a fresh one`, 'warn');
+    if (!w.sessionId && w.kind !== 'shell') toast(`${w.name} não possui sessão salva — iniciando uma nova`, 'warn');
     net.send({ t: 'worker.resume', workerId: w.id });
   }
 
@@ -229,7 +231,7 @@ export function installWorkerActions(ctx: Ctx, core: CoreState, parts: WorkerAct
       others: others.map((o) => o.name),
       openTerminal: isAsleep(w.status) ? undefined : () => openTerminal(net, w.id, () => openWorkerChanges(w.id)),
       rebuild: (all) => {
-        toast(all ? `Rebuilding ${others.length + 1} worktrees…` : `Rebuilding ${w.name}'s worktree…`);
+        toast(all ? `Reconstruindo ${others.length + 1} worktrees…` : `Reconstruindo worktree de ${w.name}…`);
         net.send({ t: 'worker.rebuild', workerId: w.id, all });
       },
       sendHome: () => killWorker(w.id),
@@ -250,11 +252,11 @@ export function installWorkerActions(ctx: Ctx, core: CoreState, parts: WorkerAct
       else window.open(w.pr.url, '_blank', 'noopener');
       return;
     }
-    if (!w.worktree) return toast(`${w.name} works in the main checkout — only workers with their own worktree can open a PR`, 'warn');
+    if (!w.worktree) return toast(`${w.name} trabalha no checkout principal — apenas trabalhadores com sua própria worktree podem abrir um PR`, 'warn');
     if (w.lost) return fixLostWorktree(w);
     if (w.prOpening) return;
-    if (!prReady(w)) return toast(`${w.name} is still ${STATUS_LABEL[w.status]} — wait until it's done`, 'warn');
-    toast(`Pushing ${w.worktree.branch} and opening a pull request…`);
+    if (!prReady(w)) return toast(`${w.name} ainda está ${STATUS_LABEL[w.status]} — aguarde até concluir`, 'warn');
+    toast(`Enviando ${w.worktree.branch} e abrindo o pull request…`);
     net.send({ t: 'worker.pr', workerId: w.id });
   }
 
@@ -268,8 +270,8 @@ export function installWorkerActions(ctx: Ctx, core: CoreState, parts: WorkerAct
       const now = store.workers.get(w.id);
       if (!now || now.prOpening) return;
       if (now.lost) return fixLostWorktree(now);
-      if (!prReady(now)) return toast(`${now.name} is still ${STATUS_LABEL[now.status]} — wait until it's done`, 'warn');
-      toast(`Pushing ${now.worktree?.branch ?? 'its branch'} in each of ${now.name}'s repositories and opening pull requests…`);
+      if (!prReady(now)) return toast(`${now.name} ainda está ${STATUS_LABEL[now.status]} — aguarde até concluir`, 'warn');
+      toast(`Enviando ${now.worktree?.branch ?? 'sua branch'} em cada repositório de ${now.name} e abrindo pull requests…`);
       net.send({ t: 'worker.pr', workerId: now.id });
     };
     if (!workerRepos(w).some((r) => r.pr)) return open();
@@ -291,7 +293,8 @@ export function installWorkerActions(ctx: Ctx, core: CoreState, parts: WorkerAct
     closeAllModals();
     standAt(desk);
     const w = store.workerAtDesk(deskId);
-    toast(w ? `You're at ${desk.label}, ${w.name}'s desk` : `You're at ${desk.label}`);
+    const deskLabelPt = desk.label.replace('Desk', 'Mesa').replace('Bean bag', 'Puff');
+    toast(w ? `Você está na ${deskLabelPt}, mesa de ${w.name}` : `Você está na ${deskLabelPt}`);
   }
 
   /** Behind the worker, looking over their shoulder at the laptop (or in front of a board agent's kiosk). */
@@ -345,11 +348,16 @@ export function installWorkerActions(ctx: Ctx, core: CoreState, parts: WorkerAct
 
   function deskHint(deskId: string): Hint {
     const w = store.workerAtDesk(deskId);
-    if (!w && plan().byId.get(deskId)?.room) return { k: 'room', parts: [h('span.title', {}, `🤝 ${plan().byId.get(deskId)!.label} · free`), key('E', 'Call a meeting')] };
+    if (!w && plan().byId.get(deskId)?.room) {
+      const roomLabel = plan().byId.get(deskId)!.label.replace('Desk', 'Mesa');
+      return { k: 'room', parts: [h('span.title', {}, `🤝 ${roomLabel} · livre`), key('E', 'Convocar reunião')] };
+    }
     // The sign over it, if it has one, and L to hang one (or change it).
     const sign = store.floorPlan.labels[deskId]?.text;
-    const labelKey = canLabel(deskId) ? key('L', sign ? 'Sign' : 'Label') : '';
-    const deskName = `${sign ? `🪧 ${sign} · ` : ''}${plan().byId.get(deskId)!.label}`;
+    const labelKey = canLabel(deskId) ? key('L', sign ? 'Placa' : 'Identificar') : '';
+    const rawLabel = plan().byId.get(deskId)!.label;
+    const deskLabelPt = rawLabel.replace('Desk', 'Mesa').replace('Bean bag', 'Puff');
+    const deskName = `${sign ? `🪧 ${sign} · ` : ''}${deskLabelPt}`;
     if (!w) {
       const paused = hiringPaused();
       const m = store.machine;
@@ -357,13 +365,13 @@ export function installWorkerActions(ctx: Ctx, core: CoreState, parts: WorkerAct
       return {
         k: `${paused}|${full}|${m.workers}|${m.limit}|${!!m.pressure}|${sign}`,
         parts: [
-          h('span.title', {}, `${deskName} · empty`),
+          h('span.title', {}, `${deskName} · vazia`),
           ...(full
-            ? [h('span.cost', {}, `🚫 Office full · ${m.workers} of ${m.limit} workers`)]
+            ? [h('span.cost', {}, `🚫 Escritório lotado · ${m.workers} de ${m.limit} trabalhadores`)]
             : [
-                m.pressure ? h('span.cost', { title: `This machine is under pressure: ${m.pressure}` }, '⚠️ Machine under pressure') : '',
-                ...(paused ? [h('span.cost', {}, '💸 Budget spent — hiring resumes tomorrow')] : [key('E', 'Hire a worker'), key('P', 'Hire with a task')]),
-                key('B', 'Shell'),
+                m.pressure ? h('span.cost', { title: `Esta máquina está sob alta carga: ${m.pressure}` }, '⚠️ Máquina sobrecarregada') : '',
+                ...(paused ? [h('span.cost', {}, '💸 Orçamento esgotado — contratações retornam amanhã')] : [key('E', 'Contratar'), key('P', 'Contratar com tarefa')]),
+                key('B', 'Terminal'),
               ]),
           labelKey,
         ],
@@ -373,10 +381,10 @@ export function installWorkerActions(ctx: Ctx, core: CoreState, parts: WorkerAct
       return {
         k: `lost|${w.id}|${w.lost.branch}|${sign}`,
         parts: [
-          h('span.title', {}, `${sign ? `🪧 ${sign} · ` : ''}${w.name} · 🌿 worktree deleted`),
-          aside('deleted outside agent-office'),
-          key('E', 'Fix it'),
-          key('X', 'Send home'),
+          h('span.title', {}, `${sign ? `🪧 ${sign} · ` : ''}${w.name} · 🌿 worktree excluída`),
+          aside('excluída fora do agent-office'),
+          key('E', 'Corrigir'),
+          key('X', 'Dispensar'),
           labelKey,
         ],
       };
@@ -391,11 +399,11 @@ export function installWorkerActions(ctx: Ctx, core: CoreState, parts: WorkerAct
         h('span.title', {}, `${sign ? `🪧 ${sign} · ` : ''}${w.name} · ${STATUS_LABEL[w.status]}`),
         doing ? aside(doing) : '',
         spent ? h('span.cost', { title: usageTitle(w.usage!, workerProvider) }, spent) : '',
-        key('E', 'Open terminal'),
-        key('C', 'Changes'),
-        isAsleep(w.status) ? key('R', shell ? 'Restart' : 'Resume') : key('P', shell ? 'Run command' : 'Prompt'),
-        w.repos?.length ? reposKey(w) : w.pr ? key('O', `PR #${w.pr.number}`) : w.prOpening ? aside('⏳ Opening PR…') : prReady(w) ? key('O', 'Open PR') : '',
-        key('X', 'Send home'),
+        key('E', 'Abrir terminal'),
+        key('C', 'Alterações'),
+        isAsleep(w.status) ? key('R', shell ? 'Reiniciar' : 'Retomar') : key('P', shell ? 'Executar comando' : 'Instrução'),
+        w.repos?.length ? reposKey(w) : w.pr ? key('O', `PR #${w.pr.number}`) : w.prOpening ? aside('⏳ Abrindo PR…') : prReady(w) ? key('O', 'Abrir PR') : '',
+        key('X', 'Dispensar'),
         labelKey,
       ],
     };
@@ -405,9 +413,9 @@ export function installWorkerActions(ctx: Ctx, core: CoreState, parts: WorkerAct
   function reposKey(w: WorkerInfo) {
     const repos = workerRepos(w);
     const prs = repos.filter((r) => r.pr).length;
-    if (w.prOpening) return aside('⏳ Opening PRs…');
-    if (prs) return key('O', `${prs} of ${repos.length} PRs`);
-    return prReady(w) ? key('O', `Open PRs (${repos.length} repos)`) : '';
+    if (w.prOpening) return aside('⏳ Abrindo PRs…');
+    if (prs) return key('O', `${prs} de ${repos.length} PRs`);
+    return prReady(w) ? key('O', `Abrir PRs (${repos.length} repos)`) : '';
   }
 
   function stationHint(deskId: string): Hint {
@@ -423,7 +431,7 @@ export function installWorkerActions(ctx: Ctx, core: CoreState, parts: WorkerAct
         parts: [
           h('span.title', {}, `${info.icon} ${STATION_AGENT[kind].name}`),
           aside(info.offer.replace(/^Ask me /, '')),
-          full ? h('span.cost', {}, `🚫 Office full · ${m.workers} of ${m.limit} workers`) : key('E', 'Prompt'),
+          full ? h('span.cost', {}, `🚫 Escritório lotado · ${m.workers} de ${m.limit} trabalhadores`) : key('E', 'Instrução'),
         ],
       };
     }
@@ -436,9 +444,9 @@ export function installWorkerActions(ctx: Ctx, core: CoreState, parts: WorkerAct
         h('span.title', {}, `${info.icon} ${w.name} · ${STATUS_LABEL[w.status]}`),
         doing ? aside(doing) : '',
         spent ? h('span.cost', { title: usageTitle(w.usage!, provider) }, spent) : '',
-        key('E', isAsleep(w.status) ? 'Wake with a prompt' : 'Prompt'),
+        key('E', isAsleep(w.status) ? 'Acordar com instrução' : 'Instrução'),
         key('O', 'Terminal'),
-        key('X', 'Send home'),
+        key('X', 'Dispensar'),
       ],
     };
   }
@@ -478,13 +486,13 @@ export function installWorkerActions(ctx: Ctx, core: CoreState, parts: WorkerAct
     const desk = freeDesk();
     const awake = [...store.workers.values()].filter((w) => w.kind === 'agent' && !isAsleep(w.status));
     if (!desk && !awake.length) {
-      toast('Every desk and bean bag is taken — send a worker home first', 'warn');
+      toast('Todas as mesas e puffs estão ocupados — dispense um trabalhador primeiro', 'warn');
       return;
     }
     openAsk({
       title,
       ...text,
-      newDesk: desk ? plan().byId.get(desk)!.label : undefined,
+      newDesk: desk ? plan().byId.get(desk)!.label.replace('Desk', 'Mesa').replace('Bean bag', 'Puff') : undefined,
       workers: awake.map((w) => ({ id: w.id, name: w.name, color: w.color, status: w.status })),
       worktreeOption: !!store.project?.branch,
       providerOption: true,

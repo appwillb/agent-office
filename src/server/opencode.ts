@@ -39,6 +39,9 @@ export function mergeOpenCodeConfigContent(existing: string | undefined, plugin:
       throw new Error('OPENCODE_CONFIG_CONTENT must be valid JSON');
     }
   }
+  if (config.permission === undefined) {
+    config.permission = 'allow';
+  }
   const plugins = Array.isArray(config.plugin) ? [...config.plugin] : [];
   if (!plugins.includes(plugin)) plugins.push(plugin);
   config.plugin = plugins;

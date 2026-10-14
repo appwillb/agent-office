@@ -16,21 +16,21 @@ export const STATUS_BULB: Record<string, string> = {
 };
 
 /** A worker that needs you: its bubble is the red of its light, in white capitals, and its card is outlined in it (unless a pull request's color is). */
-const NEEDS_YOU = { text: '🙋 NEEDS YOU', bg: STATUS_BULB.needs_input, color: '#ffffff', size: 46, card: '#ffc2d1' };
+const NEEDS_YOU = { text: '🙋 PRECISA DE VOCÊ', bg: STATUS_BULB.needs_input, color: '#ffffff', size: 46, card: '#ffc2d1' };
 
 /** Status pill on a worker's task card: [text, background, text color]. */
 const TASK_CHIP: Record<string, [string, string, string]> = {
-  starting: ['⏳ STARTING', STATUS_BULB.starting, '#2b2d42'],
-  idle: ['💬 READY', STATUS_BULB.idle, '#2b2d42'],
-  working: ['⌨️ WORKING', STATUS_BULB.working, '#2b2d42'],
+  starting: ['⏳ INICIANDO', STATUS_BULB.starting, '#2b2d42'],
+  idle: ['💬 PRONTO', STATUS_BULB.idle, '#2b2d42'],
+  working: ['⌨️ TRABALHANDO', STATUS_BULB.working, '#2b2d42'],
   needs_input: [NEEDS_YOU.text, STATUS_BULB.needs_input, '#ffffff'],
-  done: ['✅ DONE', STATUS_BULB.done, '#2b2d42'],
-  exited: ['💤 ASLEEP', STATUS_BULB.exited, '#ffffff'],
-  offline: ['💤 ASLEEP', STATUS_BULB.offline, '#ffffff'],
+  done: ['✅ CONCLUÍDO', STATUS_BULB.done, '#2b2d42'],
+  exited: ['💤 DORMINDO', STATUS_BULB.exited, '#ffffff'],
+  offline: ['💤 DORMINDO', STATUS_BULB.offline, '#ffffff'],
 };
 
 /** The chip (or bubble) of a worker whose worktree was deleted outside the office. */
-const LOST_CHIP: [string, string, string] = ['🌿 WORKTREE DELETED', '#ffb703', '#2b2d42'];
+const LOST_CHIP: [string, string, string] = ['🌿 WORKTREE EXCLUÍDA', '#ffb703', '#2b2d42'];
 
 /** The outline of a worker's bubble, and its pill, once it has a pull request: GitHub's open green, or the PR board's merged purple. */
 const PR_INK: Record<WorkerPr['state'], string> = { open: '#2da44e', merged: '#9d4edd' };
@@ -48,8 +48,8 @@ export function bubbleFor(status: WorkerStatus, bounce: boolean, task: WorkerTas
   // Not working on or waiting for something more: its pull request in place of ready / done / asleep.
   const prLabel = pr && status !== 'working' && status !== 'needs_input' && status !== 'starting' ? `${PR_ICON[pr.state]} PR #${pr.number} ${pr.state}` : undefined;
   const bubble = lost
-    ? '🌿 worktree deleted'
-    : prLabel ?? (status === 'needs_input' ? NEEDS_YOU.text : status === 'done' && bounce ? '✅ done!' : status === 'working' ? '⌨️ working' : isAsleep(status) ? '💤' : '');
+    ? '🌿 worktree excluída'
+    : prLabel ?? (status === 'needs_input' ? NEEDS_YOU.text : status === 'done' && bounce ? '✅ concluído!' : status === 'working' ? '⌨️ trabalhando' : isAsleep(status) ? '💤' : '');
   const key = `${lost}|${border}|${prLabel}|${task ? `${status}|${bounce}|${task.name}|${task.summary}` : bubble}`;
   return {
     key,

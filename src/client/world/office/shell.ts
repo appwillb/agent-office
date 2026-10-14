@@ -116,7 +116,7 @@ export function exitDoor(night: NightParts): { group: THREE.Group; door: Door } 
   hinge.add(leaf);
   g.add(hinge);
 
-  const exit = textPlane('EXIT', { bg: '#2a9d4b', color: '#ffffff', size: 64, border: '#ffffff' });
+  const exit = textPlane('SAÍDA', { bg: '#2a9d4b', color: '#ffffff', size: 64, border: '#ffffff' });
   exit.scale.multiplyScalar(0.7);
   exit.position.set(0, o.y1 + 0.35, -(WALL_T / 2 + 0.03));
   exit.rotation.y = Math.PI;

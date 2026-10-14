@@ -98,7 +98,7 @@ export class BoardTexture {
     }
     const open = (state.items as (GhIssue | GhPull)[]).filter((i) => i.state === 'OPEN');
     if (!open.length) {
-      const note = state.error ? `⚠️ ${state.error}` : state.loading && !state.fetchedAt ? 'Loading…' : this.kind === 'issues' ? 'No open issues 🎉' : 'No open PRs';
+      const note = state.error ? `⚠️ ${state.error}` : state.loading && !state.fetchedAt ? 'Carregando…' : this.kind === 'issues' ? 'Nenhuma issue aberta 🎉' : 'Nenhum PR aberto';
       g.font = '800 40px Nunito, ui-rounded, system-ui, sans-serif';
       const lines = wrap(g, note.replace(/`/g, ''), 760, 4);
       const boxH = 60 + lines.length * 50;
@@ -295,18 +295,18 @@ export class QueueBoardTexture {
     const rows = [
       ...running.map((t) => {
         const w = t.workerId ? workers.get(t.workerId) : undefined;
-        const st = { starting: 'starting', idle: 'ready', working: 'working', needs_input: 'needs input ✋', done: 'done', exited: 'stopped', offline: 'asleep' }[w?.status ?? 'working'];
-        return { icon: '🤖', text: name(t), side: `${t.workerName ?? 'a worker'} · ${st}`, color: '#1e8f4e' };
+        const st = { starting: 'iniciando', idle: 'pronto', working: 'trabalhando', needs_input: 'precisa de ajuda ✋', done: 'concluído', exited: 'parado', offline: 'dormindo' }[w?.status ?? 'working'];
+        return { icon: '🤖', text: name(t), side: `${t.workerName ?? 'um trabalhador'} · ${st}`, color: '#1e8f4e' };
       }),
-      ...queued.map((t, i) => ({ icon: '⏳', text: name(t), side: i === 0 ? 'up next' : `${i + 1}${['th', 'st', 'nd', 'rd'][i + 1 <= 3 ? i + 1 : 0]} in line`, color: '#2b2d42' })),
+      ...queued.map((t, i) => ({ icon: '⏳', text: name(t), side: i === 0 ? 'a seguir' : `${i + 1}º na fila`, color: '#2b2d42' })),
       ...done.map((t) => ({
         icon: t.outcome === 'done' ? '✅' : '⚠️',
         text: name(t),
-        side: t.pr ? `PR #${t.pr.number}${t.pr.state === 'MERGED' ? ' · merged' : ''}` : t.outcome === 'done' ? 'done' : t.outcome === 'failed' ? "didn't start" : t.outcome === 'killed' ? 'sent home' : 'stopped',
+        side: t.pr ? `PR #${t.pr.number}${t.pr.state === 'MERGED' ? ' · mesclado' : ''}` : t.outcome === 'done' ? 'concluído' : t.outcome === 'failed' ? "não iniciou" : t.outcome === 'killed' ? 'dispensado' : 'parado',
         color: '#8a8f98',
       })),
     ];
-    const summary = state.maxWorkers === 0 ? 'paused' : `${running.length} working · ${queued.length} waiting · up to ${state.maxWorkers} at once`;
+    const summary = state.maxWorkers === 0 ? 'pausado' : `${running.length} trabalhando · ${queued.length} na fila · até ${state.maxWorkers} por vez`;
     const key = JSON.stringify([rows, summary]);
     if (key === this.drawn) return;
     this.drawn = key;
@@ -332,7 +332,7 @@ export class QueueBoardTexture {
     g.textAlign = 'left';
     g.fillStyle = '#1f5fbf';
     g.font = `900 52px ${font}`;
-    g.fillText('Task queue', 40, 76);
+    g.fillText('Fila de tarefas', 40, 76);
     // A hand-drawn underline.
     g.strokeStyle = '#1f5fbf';
     g.lineWidth = 5;
@@ -386,7 +386,7 @@ export class QueueBoardTexture {
       g.fillStyle = '#6b7280';
       g.font = `800 24px ${font}`;
       g.textAlign = 'right';
-      g.fillText(`+${rows.length - shown.length} more`, W - 44, H - 34);
+      g.fillText(`+${rows.length - shown.length} a mais`, W - 44, H - 34);
       g.textAlign = 'left';
     }
     this.texture.needsUpdate = true;

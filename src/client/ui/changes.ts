@@ -100,7 +100,13 @@ function renderPreview(workerId: string, repo: string | undefined, f: ChangedFil
       img.addEventListener('load', () => (size.textContent = `${img.naturalWidth} × ${img.naturalHeight}`));
       img.addEventListener('error', () => frame.replaceChildren(h('p', {}, `Não foi possível carregar a imagem ${side === 'old' ? 'anterior' : 'atual'}.`)));
       frame.append(img);
-      return h('figure', {}, h('figcaption', {}, h('b', {}, label), size), frame);
+      const dl = h('a.btn', {
+        href: `${imageUrl(workerId, repo, f, side)}&download=1`,
+        download: (side === 'old' ? f.from ?? f.path : f.path).split('/').pop() ?? 'imagem',
+        target: '_blank',
+        style: 'margin-top:8px;font-size:12px;display:inline-block;text-decoration:none',
+      }, '⬇ Baixar imagem');
+      return h('figure', {}, h('figcaption', {}, h('b', {}, label), size), frame, dl);
     }),
   );
 }
@@ -219,6 +225,16 @@ export function openChanges(net: Net, workerId: string, onTerminal?: () => void,
       h('span.word', {}, f.uncommitted ? `${STATUS_WORD[f.status]} · não commitado` : STATUS_WORD[f.status]),
       plusMinus(f.additions, f.deletions, f.binary),
     );
+    if (f.status !== 'D') {
+      const downloadOne = h('a.btn', {
+        href: `${imageUrl(workerId, repo, f, 'new')}&download=1`,
+        download: f.path.split('/').pop() ?? 'arquivo',
+        target: '_blank',
+        title: 'Baixar este arquivo para o seu computador',
+        style: 'text-decoration:none',
+      }, '⬇ Baixar');
+      diffHead.append(downloadOne);
+    }
     if (f.uncommitted && !state?.busy) diffHead.append(discardOne);
   };
 
@@ -300,9 +316,30 @@ export function openChanges(net: Net, workerId: string, onTerminal?: () => void,
       const f = state?.files.find((x) => x.path === selected);
       const text = msg.error ? h('div.changes-empty', {}, h('p', {}, msg.error)) : renderDiff(msg.diff, msg.truncated);
       const type = f ? changedImageType(f.path) : undefined;
+      const isPdf = f && f.path.toLowerCase().endsWith('.pdf');
       // A picture's diff only says it differs, so show the picture instead. An SVG is text too: its diff stays below.
       if (f && type) diffBody.replaceChildren(renderPreview(workerId, repo, f), ...(type === 'image/svg+xml' ? [text] : []));
-      else diffBody.replaceChildren(text);
+      else if (f && isPdf) {
+        diffBody.replaceChildren(
+          h(
+            'div.changes-empty',
+            {},
+            h('div.big', {}, '📄'),
+            h('p', { style: 'font-weight:700;font-size:16px;margin:0 0 6px' }, f.path.split('/').pop() ?? 'Documento PDF'),
+            h('p.note', {}, 'Documento gerado pelo agente pronto para visualização e download.'),
+            h(
+              'a.btn.primary',
+              {
+                href: `${imageUrl(workerId, repo, f, 'new')}&download=1`,
+                download: f.path.split('/').pop() ?? 'documento.pdf',
+                target: '_blank',
+                style: 'margin-top:14px;display:inline-block;text-decoration:none',
+              },
+              '⬇ Baixar PDF para o seu computador',
+            ),
+          ),
+        );
+      } else diffBody.replaceChildren(text);
       // The file changed again while the diff was on its way: fetch the fresh one.
       if (f && f.sig !== shownSig) requestDiff();
     }

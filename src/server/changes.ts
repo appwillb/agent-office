@@ -162,6 +162,18 @@ async function signature(file: string): Promise<string> {
   }
 }
 
+function mimeTypeFor(filePath: string): string {
+  const ext = filePath.slice(filePath.lastIndexOf('.') + 1).toLowerCase();
+  const types: Record<string, string> = {
+    png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp',
+    svg: 'image/svg+xml', bmp: 'image/bmp', ico: 'image/x-icon',
+    pdf: 'application/pdf', txt: 'text/plain; charset=utf-8', md: 'text/markdown; charset=utf-8',
+    csv: 'text/csv; charset=utf-8', json: 'application/json; charset=utf-8', html: 'text/html; charset=utf-8',
+    zip: 'application/zip',
+  };
+  return types[ext] ?? 'application/octet-stream';
+}
+
 /** A worker's checkout the Changes window can show: its own, or one of its other repositories'. */
 const watchKey = (workerId: string, repo?: string) => (repo ? `${workerId} ${repo}` : workerId);
 
@@ -238,20 +250,18 @@ export class Changes {
   }
 
   /**
-   * One side of a changed picture, for the preview in the Changes window: 'old' is the file at the
-   * commit the diff is taken from, 'new' is what's in the checkout now. Only files in the worker's
-   * list of changes are served, and only pictures.
+   * One side of a changed file, for the preview or download in the Changes window: 'old' is the file at the
+   * commit the diff is taken from, 'new' is what's in the checkout now.
    */
-  async file(workerId: string, filePath: string, side: 'old' | 'new', repo?: string): Promise<ImageResult> {
-    if (!changedImageType(filePath)) return { status: 415, error: 'Only pictures can be previewed' };
+  async file(workerId: string, filePath: string, side: 'old' | 'new', repo?: string, download = false): Promise<ImageResult> {
+    if (!download && !changedImageType(filePath)) return { status: 415, error: 'Only pictures can be previewed' };
     const t = this.target(workerId, repo);
     if (!t) return { status: 404, error: 'No such worker' };
     const file = await this.changedFile(workerId, repo, t, filePath);
     if (typeof file === 'string') return { status: 404, error: file };
-    // A renamed file was something else before; its old side is only a picture if that name was one.
     const name = side === 'old' ? file.from ?? file.path : file.path;
-    const type = changedImageType(name);
-    if (!type) return { status: 415, error: 'Only pictures can be previewed' };
+    if (!download && !changedImageType(name)) return { status: 415, error: 'Only pictures can be previewed' };
+    const type = mimeTypeFor(name);
     try {
       if (side === 'new') {
         if (file.status === 'D') return { status: 404, error: 'That file was deleted' };

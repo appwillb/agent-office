@@ -1,5 +1,6 @@
 // Files a floor's windows show or take: pictures on the walls and the whiteboard, files dropped into
 // a terminal, changed pictures in the Changes window, and the bookshelf's Markdown.
+import path from 'node:path';
 import type { Floor } from '../../floor.js';
 import { WB_MAX_FILE_BYTES } from '../../../shared/whiteboard.js';
 import { DROP_MAX_BYTES } from '../../../shared/drops.js';
@@ -93,11 +94,14 @@ export const fileRoutes = {
       if (!workerId || !file || (side !== 'old' && side !== 'new')) return send(res, 400, { error: 'Bad request' });
       if (!floor) return send(res, 404, { error: 'No such floor' });
       if (!floor.workers.get(workerId)) return send(res, 404, { error: 'No such worker' });
-      const r = await floor.changes.file(workerId, file, side, repoOf(url.searchParams.get('repo')));
+      const download = url.searchParams.get('download') === '1';
+      const r = await floor.changes.file(workerId, file, side, repoOf(url.searchParams.get('repo')), download);
       if ('error' in r) return send(res, r.status, { error: r.error });
+      const filename = path.basename(file);
       res.writeHead(200, {
         'content-type': r.type,
         'content-length': String(r.body.length),
+        ...(download ? { 'content-disposition': `attachment; filename="${encodeURIComponent(filename)}"` } : {}),
         // The worker may change it again any moment.
         'cache-control': 'no-store',
         'x-content-type-options': 'nosniff',

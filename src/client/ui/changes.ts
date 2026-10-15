@@ -87,7 +87,7 @@ function imageUrl(workerId: string, repo: string | undefined, f: ChangedFile, si
 }
 
 /** A changed picture, before and after; new and deleted files only have the one side. */
-function renderPreview(workerId: string, repo: string | undefined, f: ChangedFile): HTMLElement {
+function renderPreview(workerId: string, repo: string | undefined, f: ChangedFile, onDelete?: () => void): HTMLElement {
   const sides: ('old' | 'new')[] = f.status === '?' || f.status === 'A' ? ['new'] : f.status === 'D' ? ['old'] : ['old', 'new'];
   return h(
     'div.img-preview',
@@ -104,9 +104,19 @@ function renderPreview(workerId: string, repo: string | undefined, f: ChangedFil
         href: `${imageUrl(workerId, repo, f, side)}&download=1`,
         download: (side === 'old' ? f.from ?? f.path : f.path).split('/').pop() ?? 'imagem',
         target: '_blank',
-        style: 'margin-top:8px;font-size:12px;display:inline-block;text-decoration:none',
+        style: 'font-size:12px;display:inline-block;text-decoration:none',
       }, '⬇ Baixar imagem');
-      return h('figure', {}, h('figcaption', {}, h('b', {}, label), size), frame, dl);
+      const btns: HTMLElement[] = [dl];
+      if (onDelete && side === 'new') {
+        btns.push(h('button.btn', {
+          type: 'button',
+          style: 'font-size:12px;color:#ef4444',
+          title: 'Excluir esta imagem do servidor',
+          onclick: onDelete,
+        }, '🗑️ Excluir imagem'));
+      }
+      const actions = h('div', { style: 'display:flex;gap:8px;justify-content:center;margin-top:8px;flex-wrap:wrap' }, ...btns);
+      return h('figure', {}, h('figcaption', {}, h('b', {}, label), size), frame, actions);
     }),
   );
 }
@@ -140,7 +150,7 @@ export function openChanges(net: Net, workerId: string, onTerminal?: () => void,
   const diffBody = h('div.diff-scroll');
   const diff = h('section.changes-diff', {}, diffHead, diffBody);
   const summary = h('span.grow');
-  const discardBtn = h('button.btn', { type: 'button', title: 'Descartar todas as alterações não commitadas nesta pasta de trabalho' }, '🗑️ Descartar tudo');
+  const discardBtn = h('button.btn', { type: 'button', title: 'Descartar alterações não commitadas e excluir arquivos gerados nesta pasta' }, '🗑️ Limpar tudo / Excluir');
   const commitBtn = h('button.btn', { type: 'button', title: 'git add -A && git commit' }, '✅ Commitar…');
   const prSlot = h('span.pr-slot');
   const tabs = h('nav.changes-tabs', { role: 'tablist', 'aria-label': 'Repositórios' });
@@ -210,15 +220,28 @@ export function openChanges(net: Net, workerId: string, onTerminal?: () => void,
     list.querySelector('li.on')?.scrollIntoView({ block: 'nearest' });
   };
 
+  const discardFile = (f: ChangedFile) => {
+    const isNew = f.status === '?' || f.status === 'A';
+    confirmDialog(
+      isNew ? `Excluir ${f.path.split('/').pop()}?` : `Descartar alterações em ${f.path.split('/').pop()}?`,
+      isNew
+        ? `O arquivo ${f.path} será apagado permanentemente do servidor, liberando espaço em disco.`
+        : `Isso restaura ${f.path} ao estado do último commit em ${where()}. Commits anteriores permanecem intactos.`,
+      isNew ? 'Excluir do servidor' : 'Descartar',
+      () => net.send({ t: 'changes.discard', workerId, path: f.path, repo }),
+    );
+  };
+
   const renderDiffHead = () => {
     const f = state?.files.find((x) => x.path === selected);
     if (!f) return diffHead.replaceChildren();
-    const discardOne = h('button.btn', { type: 'button', title: 'Descartar alterações não commitadas deste arquivo' }, '↩︎ Descartar');
-    discardOne.addEventListener('click', () =>
-      confirmDialog(`Descartar alterações em ${f.path.split('/').pop()}?`, `Isso restaura ${f.path} ao estado do último commit em ${where()}. ${f.status === '?' ? 'O arquivo será apagado.' : 'Commits anteriores permanecem intactos.'}`, 'Descartar', () =>
-        net.send({ t: 'changes.discard', workerId, path: f.path, repo }),
-      ),
-    );
+    const isNew = f.status === '?' || f.status === 'A';
+    const discardOne = h('button.btn', {
+      type: 'button',
+      title: isNew ? 'Excluir permanentemente este arquivo do servidor para liberar espaço' : 'Descartar alterações não commitadas deste arquivo',
+      style: isNew ? 'color:#ef4444' : '',
+    }, isNew ? '🗑️ Excluir' : '↩︎ Descartar');
+    discardOne.addEventListener('click', () => discardFile(f));
     diffHead.replaceChildren(
       h('span.st', { class: f.status === '?' ? 'A' : f.status }, f.status === '?' ? 'A' : f.status),
       h('span.path', { title: f.path }, f.from ? `${f.from} → ${f.path}` : f.path),
@@ -318,8 +341,20 @@ export function openChanges(net: Net, workerId: string, onTerminal?: () => void,
       const type = f ? changedImageType(f.path) : undefined;
       const isPdf = f && f.path.toLowerCase().endsWith('.pdf');
       // A picture's diff only says it differs, so show the picture instead. An SVG is text too: its diff stays below.
-      if (f && type) diffBody.replaceChildren(renderPreview(workerId, repo, f), ...(type === 'image/svg+xml' ? [text] : []));
+      if (f && type) diffBody.replaceChildren(renderPreview(workerId, repo, f, f.uncommitted ? () => discardFile(f) : undefined), ...(type === 'image/svg+xml' ? [text] : []));
       else if (f && isPdf) {
+        const deletePdf = f.uncommitted
+          ? h(
+              'button.btn',
+              {
+                type: 'button',
+                style: 'color:#ef4444',
+                title: 'Excluir permanentemente este arquivo PDF do servidor',
+                onclick: () => discardFile(f),
+              },
+              '🗑️ Excluir PDF do servidor',
+            )
+          : null;
         diffBody.replaceChildren(
           h(
             'div.changes-empty',
@@ -328,14 +363,19 @@ export function openChanges(net: Net, workerId: string, onTerminal?: () => void,
             h('p', { style: 'font-weight:700;font-size:16px;margin:0 0 6px' }, f.path.split('/').pop() ?? 'Documento PDF'),
             h('p.note', {}, 'Documento gerado pelo agente pronto para visualização e download.'),
             h(
-              'a.btn.primary',
-              {
-                href: `${imageUrl(workerId, repo, f, 'new')}&download=1`,
-                download: f.path.split('/').pop() ?? 'documento.pdf',
-                target: '_blank',
-                style: 'margin-top:14px;display:inline-block;text-decoration:none',
-              },
-              '⬇ Baixar PDF para o seu computador',
+              'div',
+              { style: 'display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap' },
+              h(
+                'a.btn.primary',
+                {
+                  href: `${imageUrl(workerId, repo, f, 'new')}&download=1`,
+                  download: f.path.split('/').pop() ?? 'documento.pdf',
+                  target: '_blank',
+                  style: 'text-decoration:none',
+                },
+                '⬇ Baixar PDF para o seu computador',
+              ),
+              deletePdf,
             ),
           ),
         );
@@ -361,9 +401,9 @@ export function openChanges(net: Net, workerId: string, onTerminal?: () => void,
   discardBtn.addEventListener('click', () => {
     const n = state?.files.filter((f) => f.uncommitted).length ?? 0;
     confirmDialog(
-      `Descartar todas as alterações não commitadas na mesa de ${info.name}?`,
-      `Isso restaura ${n} arquivo${n === 1 ? '' : 's'} em ${where()} ao último commit e remove novos arquivos. Commits permanecem.${state?.dir ? '' : " Essa pasta é compartilhada: edições não commitadas de outros colegas também serão descartadas."}`,
-      'Descartar tudo',
+      `Limpar alterações e arquivos na mesa de ${info.name}?`,
+      `Isso restaura arquivos modificados ao último commit e exclui permanentemente novos arquivos gerados (${n} arquivo${n === 1 ? '' : 's'}) do servidor, liberando espaço em disco.${state?.dir ? '' : " Essa pasta é compartilhada: edições não commitadas de outros colegas também serão descartadas."}`,
+      'Limpar tudo / Excluir',
       () => net.send({ t: 'changes.discard', workerId, repo }),
     );
   });

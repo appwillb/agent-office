@@ -1,5 +1,5 @@
 import { execFile } from 'node:child_process';
-import { readFile, realpath, stat } from 'node:fs/promises';
+import { readFile, realpath, stat, unlink } from 'node:fs/promises';
 import path from 'node:path';
 import type { ImageResult } from './decor.js';
 import { changedImageType, type ChangedFile, type ChangeStatus, type ChangesState } from '../shared/protocol.js';
@@ -303,9 +303,12 @@ export class Changes {
       if (filePath !== undefined) {
         const file = w.last?.files.find((f) => f.path === filePath);
         if (!file?.uncommitted) return 'That file has no uncommitted changes';
-        if (file.status === '?') await git(['clean', '-f', '--', file.path], t.cwd);
-        else await git(['restore', '--source=HEAD', '--staged', '--worktree', '--', ...(file.from ? [file.from] : []), file.path], t.cwd);
-        this.events.toast(`${who} discarded the changes to ${path.basename(file.path)} at ${t.name}'s desk`, 'info');
+        if (file.status === '?') {
+          await git(['clean', '-f', '--', file.path], t.cwd);
+          const abs = await insideCheckout(t.cwd, file.path);
+          if (abs) await unlink(abs).catch(() => {});
+        } else await git(['restore', '--source=HEAD', '--staged', '--worktree', '--', ...(file.from ? [file.from] : []), file.path], t.cwd);
+        this.events.toast(`${who} ${file.status === '?' ? 'excluiu' : 'descartou as alterações de'} ${path.basename(file.path)} na mesa de ${t.name}`, 'info');
       } else {
         const n = w.last?.files.filter((f) => f.uncommitted).length ?? 0;
         await git(['reset', '-q', '--hard'], t.cwd);

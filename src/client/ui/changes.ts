@@ -213,6 +213,14 @@ export function openChanges(net: Net, workerId: string, onTerminal?: () => void,
         pathLabel(f.path),
         f.uncommitted ? h('span.dirty', { title: 'Não commitado' }) : null,
         plusMinus(f.additions, f.deletions, f.binary),
+        f.status !== 'D' ? h('a.btn', {
+          href: imageUrl(workerId, repo, f, 'new') + '&download=1',
+          download: f.path.split('/').pop() || 'arquivo',
+          target: '_blank',
+          title: 'Baixar ' + (f.path.split('/').pop() || 'arquivo'),
+          onclick: (e: Event) => e.stopPropagation(),
+          style: 'margin-left:auto;padding:2px 7px;font-size:11px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;flex:none;background:var(--paper-1);border:1.5px solid var(--ink);border-radius:6px;color:var(--ink)',
+        }, '⬇ Baixar') : null,
       );
       list.append(li);
     }
@@ -249,7 +257,7 @@ export function openChanges(net: Net, workerId: string, onTerminal?: () => void,
       plusMinus(f.additions, f.deletions, f.binary),
     );
     if (f.status !== 'D') {
-      const downloadOne = h('a.btn', {
+      const downloadOne = h('a.btn.primary', {
         href: `${imageUrl(workerId, repo, f, 'new')}&download=1`,
         download: f.path.split('/').pop() ?? 'arquivo',
         target: '_blank',
@@ -379,6 +387,25 @@ export function openChanges(net: Net, workerId: string, onTerminal?: () => void,
             ),
           ),
         );
+      } else if (f && (f.binary || f.status === '?')) {
+        const dlBtn = h('a.btn.primary', {
+          href: imageUrl(workerId, repo, f, 'new') + '&download=1',
+          download: f.path.split('/').pop() || 'arquivo',
+          target: '_blank',
+          style: 'text-decoration:none',
+        }, '⬇ Baixar arquivo para o seu computador');
+        const delBtn = f.uncommitted ? h('button.btn', {
+          type: 'button',
+          style: 'color:#ef4444',
+          onclick: () => discardFile(f),
+        }, '🗑️ Excluir do servidor') : null;
+        const banner = h('div.changes-empty', { style: 'padding:16px 20px 20px;border-bottom:2px solid rgba(43,45,66,.15);max-width:none' },
+          h('div.big', {}, f.binary ? '📦' : '📄'),
+          h('p', { style: 'font-weight:700;font-size:16px;margin:0 0 6px' }, f.path.split('/').pop() || 'Arquivo gerado'),
+          h('p.note', {}, 'Arquivo gerado pelo agente disponível para download direto.'),
+          h('div', { style: 'display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap' }, dlBtn, delBtn),
+        );
+        diffBody.replaceChildren(banner, ...(f.binary ? [] : [text]));
       } else diffBody.replaceChildren(text);
       // The file changed again while the diff was on its way: fetch the fresh one.
       if (f && f.sig !== shownSig) requestDiff();

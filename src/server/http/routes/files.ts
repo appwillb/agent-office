@@ -10,7 +10,15 @@ import { readBody, readBytes, sameOrigin, send } from '../util.js';
 import type { Route } from '../router.js';
 
 // Which floor a request is about: its boards and its workers.
-export const floorParam = (ctx: Ctx, url: URL): Floor | undefined => ctx.floors.get(url.searchParams.get('floor') ?? '');
+export const floorParam = (ctx: Ctx, url: URL): Floor | undefined => {
+  const id = url.searchParams.get('floor');
+  if (id && ctx.floors.has(id)) return ctx.floors.get(id);
+  const workerId = url.searchParams.get('worker');
+  if (workerId) {
+    for (const f of ctx.floors.values()) if (f.workers.get(workerId)) return f;
+  }
+  return ctx.floors.values().next().value;
+};
 
 export const fileRoutes = {
   image: {

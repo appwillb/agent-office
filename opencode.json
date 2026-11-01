@@ -1,4 +1,20 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "permission": "allow"
+  "permission": "allow",
+  "model": "nvidia/meta/llama-3.2-90b-vision-instruct",
+  "provider": {
+    "nvidia": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "NVIDIA",
+      "options": {
+        "baseURL": "https://integrate.api.nvidia.com/v1",
+        "apiKey": "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"
+      },
+      "models": {
+        "meta/llama-3.2-90b-vision-instruct": {
+          "name": "Llama 3.2 90B Vision"
+        }
+      }
+    }
+  }
 }

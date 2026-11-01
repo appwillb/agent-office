@@ -7,3 +7,5 @@
 - New features plug in through the registries as modules of their own (see `docs/code-layout.md`), never by adding their code to `main.ts`, `server.ts`, the state store, `protocol.ts` or another feature's files, and `tests/size.test.ts` must stay green.
 - Every modal needs a top-right ✕, and closing it by ✕ or Esc must put the player straight back into mouse-look with no extra click.
 - When asked to merge PRs, merge only webdevcody's (anyone else's only when linked, after a security review), resolve conflicts so both sides survive, and squash-merge.
+- When asked to generate flyers, banners, or promotional marketing images, NEVER write manual 2D Canvas scripts, coordinate code, or rudimentary shapes. ALWAYS execute the AI image generator: `node scripts/generate_ai_image.mjs "<prompt detalhado>" "flyers/<nome>.png"`.
+
